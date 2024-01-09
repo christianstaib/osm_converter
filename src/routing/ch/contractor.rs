@@ -1,12 +1,12 @@
 use indicatif::{ProgressBar, ProgressStyle};
+use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
-use speedy::{Readable, Writable};
 
 use crate::routing::graph::{Edge, Graph};
 
 use super::{ch_queue::queue::CHQueue, contraction_helper::ContractionHelper};
 
-#[derive(Clone, Serialize, Deserialize, Readable, Writable)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ContractedGraph {
     pub graph: Graph,
     pub map: Vec<((u32, u32), Vec<(u32, u32)>)>,
@@ -37,7 +37,7 @@ impl Contractor {
     }
 
     pub fn get_graph(&mut self) -> ContractedGraph {
-        let shortcuts = self.contract();
+        let shortcuts = self.contract_ins();
 
         let map = shortcuts
             .into_iter()
@@ -91,12 +91,59 @@ impl Contractor {
         shortcuts
     }
 
+    pub fn contract_ins(&mut self) -> Vec<(Edge, Vec<Edge>)> {
+        let outgoing_edges = self.graph.forward_edges.clone();
+        let incoming_edges = self.graph.backward_edges.clone();
+
+        let mut shortcuts = Vec::new();
+
+        let bar = ProgressBar::new(self.graph.forward_edges.len() as u64);
+        let style =
+            ProgressStyle::with_template("{wide_bar} {human_pos}/{human_len} {eta_precise}")
+                .unwrap();
+        bar.set_style(style);
+        let mut level = 0;
+        while let Some(ids) = self.queue.lazy_pop_independent_node_set(&self.graph) {
+            let mut this_shortcuts = ids
+                .par_iter()
+                .map(|&v| {
+                    let shortcut_generator = ContractionHelper::new(&self.graph);
+                    shortcut_generator.generate_shortcuts(v, 10)
+                })
+                .flatten()
+                .collect::<Vec<_>>();
+
+            self.add_shortcuts(&this_shortcuts);
+            shortcuts.append(&mut this_shortcuts);
+
+            for v in ids {
+                self.graph.disconnect(v);
+                self.levels[v as usize] = level;
+
+                level += 1;
+                bar.inc(1);
+            }
+        }
+        bar.finish();
+
+        self.graph.forward_edges = outgoing_edges;
+        self.graph.backward_edges = incoming_edges;
+        for (shortcut, _) in &shortcuts {
+            self.graph.forward_edges[shortcut.source as usize].push(shortcut.clone());
+            self.graph.backward_edges[shortcut.target as usize].push(shortcut.clone());
+        }
+
+        self.removing_level_property();
+
+        shortcuts
+    }
+
     fn contract_node(&mut self, v: u32) -> Vec<(Edge, Vec<Edge>)> {
         // U --> v --> W
         let shortcut_generator = ContractionHelper::new(&self.graph);
         let shortcuts = shortcut_generator.generate_shortcuts(v, 10);
         self.add_shortcuts(&shortcuts);
-        self.disconnect(v);
+        self.graph.disconnect(v);
         shortcuts
     }
 
@@ -120,17 +167,5 @@ impl Contractor {
                 self.levels[edge.source as usize] > self.levels[edge.target as usize]
             });
         });
-    }
-
-    pub fn disconnect(&mut self, node_id: u32) {
-        while let Some(incoming_edge) = self.graph.backward_edges[node_id as usize].pop() {
-            self.graph.forward_edges[incoming_edge.source as usize]
-                .retain(|outgoing_edge| outgoing_edge.target != node_id);
-        }
-
-        while let Some(outgoing_edge) = self.graph.forward_edges[node_id as usize].pop() {
-            self.graph.backward_edges[outgoing_edge.target as usize]
-                .retain(|incoming_edge| incoming_edge.source != node_id);
-        }
     }
 }

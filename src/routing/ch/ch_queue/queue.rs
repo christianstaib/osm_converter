@@ -1,5 +1,6 @@
 use std::collections::BinaryHeap;
 
+use ahash::{HashSet, HashSetExt};
 use indicatif::ProgressIterator;
 use rand::seq::SliceRandom;
 use rayon::iter::{ParallelBridge, ParallelIterator};
@@ -55,6 +56,33 @@ impl CHQueue {
             self.update_before_contraction(v, graph);
             return Some(v);
         }
+        None
+    }
+
+    pub fn lazy_pop_independent_node_set(&mut self, graph: &Graph) -> Option<Vec<u32>> {
+        let mut neighbors = HashSet::new();
+        let mut independent_node_set = Vec::new();
+
+        while let Some(state) = self.queue.pop() {
+            let v = state.node_id;
+            let new_priority = self.get_priority(v, graph);
+            if new_priority > state.priority {
+                self.queue.push(CHState::new(new_priority, v));
+                continue;
+            }
+            if neighbors.contains(&v) {
+                self.queue.push(CHState::new(new_priority, v));
+                break;
+            }
+            self.update_before_contraction(v, graph);
+            neighbors.extend(graph.get_neighborhood(v, 1));
+            independent_node_set.push(v);
+        }
+
+        if !independent_node_set.is_empty() {
+            return Some(independent_node_set);
+        }
+
         None
     }
 

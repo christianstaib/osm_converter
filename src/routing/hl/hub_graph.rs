@@ -4,13 +4,12 @@ use rayon::{
     prelude::IntoParallelRefMutIterator,
 };
 use serde_derive::{Deserialize, Serialize};
-use speedy::{Readable, Writable};
 
 use crate::routing::{route::RouteRequest, simple_algorithms::ch_bi_dijkstra::ChDijkstra};
 
 use super::label::Label;
 
-#[derive(Serialize, Deserialize, Readable, Writable)]
+#[derive(Serialize, Deserialize)]
 pub struct HubGraph {
     pub forward_labels: Vec<Label>,
     pub backward_labels: Vec<Label>,
