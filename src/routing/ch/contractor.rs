@@ -37,7 +37,7 @@ impl Contractor {
     }
 
     pub fn get_graph(&mut self) -> ContractedGraph {
-        let shortcuts = self.contract_ins();
+        let shortcuts = self.contract();
 
         let map = shortcuts
             .into_iter()
