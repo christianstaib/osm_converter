@@ -37,7 +37,7 @@ fn main() {
     println!("took {:?} to prune graph", start.elapsed());
 
     let writer = BufWriter::new(File::create(args.pruned_hub_graph).unwrap());
-    serde_json::to_writer(writer, &hub_graph).unwrap();
+    bincode::serialize_into(writer, &hub_graph).unwrap();
 
     let mut time_hl = Vec::new();
     tests.iter().progress().for_each(|test| {
