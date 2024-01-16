@@ -26,11 +26,11 @@ fn main() {
     let reader = BufReader::new(File::open(args.test_path.as_str()).unwrap());
     let tests: Vec<RouteValidationRequest> = serde_json::from_reader(reader).unwrap();
 
-    let reader = BufReader::new(File::open(args.hub_graph).unwrap());
+    let reader = BufReader::new(File::open(&args.hub_graph).unwrap());
     let hub_graph: HubGraph = serde_json::from_reader(reader).unwrap();
 
-    let writer = BufWriter::new(File::create(args.hub_graph).unwrap());
-    bincode::serialize_into(writer, &hub_graph);
+    let writer = BufWriter::new(File::create(&args.hub_graph).unwrap());
+    bincode::serialize_into(writer, &hub_graph).unwrap();
 
     println!("avg label size is {}", hub_graph.get_avg_label_size());
 
