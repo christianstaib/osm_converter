@@ -87,10 +87,10 @@ test_hl:
 
 
 prune_hl_stgt:
-	cargo run --bin prune_hl --release -- --hub-graph $(STGT_HUBS) --pruned-hub-graph $(STGT_HUBS_PRUNED) --test-path $(STGT_TESTS_JSON)
+	cargo run --bin prune_hl --release -- --hub-graph $(STGT_HUBS) --pruned-hub-graph $(STGT_HUBS_PRUNED)
 
 prune_hl:
-	cargo run --bin prune_hl --release -- --hub-graph $(NETWORK_HUBS) --pruned-hub-graph $(NETWORK_HUBS_PRUNED) --test-path $(NETWORK_TESTS)
+	cargo run --bin prune_hl --release -- --hub-graph $(NETWORK_HUBS) --pruned-hub-graph $(NETWORK_HUBS_PRUNED)
 
 
 predict_hl_stgt:

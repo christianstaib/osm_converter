@@ -45,42 +45,53 @@ impl CHQueue {
         self.priority_terms.push((weight, Box::new(term)));
     }
 
-    pub fn lazy_pop(&mut self, graph: &Graph) -> Option<u32> {
-        while let Some(state) = self.queue.pop() {
-            let v = state.node_id;
-            let new_priority = self.get_priority(v, graph);
-            if new_priority > state.priority {
-                self.queue.push(CHState::new(new_priority, v));
+    // Lazy poping the node with minimum priority.
+    pub fn pop(&mut self, graph: &Graph) -> Option<u32> {
+        while let Some(mut state) = self.queue.pop() {
+            // If current priority is greater than minimum priority, then repush state with updated
+            // priority.
+            let current_priority = self.get_priority(state.node_id, graph);
+            if current_priority > state.priority {
+                state.priority = current_priority;
+                self.queue.push(state);
                 continue;
             }
-            self.update_before_contraction(v, graph);
-            return Some(v);
+
+            self.update_before_contraction(state.node_id, graph);
+            return Some(state.node_id);
         }
         None
     }
 
-    pub fn lazy_pop_independent_node_set(&mut self, graph: &Graph) -> Option<Vec<u32>> {
+    pub fn pop_vec(&mut self, graph: &Graph) -> Option<Vec<u32>> {
         let mut neighbors = HashSet::new();
-        let mut independent_node_set = Vec::new();
+        let mut node_set = Vec::new();
 
-        while let Some(state) = self.queue.pop() {
-            let v = state.node_id;
-            let new_priority = self.get_priority(v, graph);
-            if new_priority > state.priority {
-                self.queue.push(CHState::new(new_priority, v));
+        while let Some(mut state) = self.queue.pop() {
+            // If current priority is greater than minimum priority, then repush state with updated
+            // priority and try again.
+            let current_priority = self.get_priority(state.node_id, graph);
+            if current_priority > state.priority {
+                state.priority = current_priority;
+                self.queue.push(state);
                 continue;
             }
-            if neighbors.contains(&v) {
-                self.queue.push(CHState::new(new_priority, v));
+
+            // If node is in set of neighbors, then repush state with updated priority and stop the
+            // creation of the node set.
+            if neighbors.contains(&state.node_id) {
+                state.priority = current_priority;
+                self.queue.push(state);
                 break;
             }
-            self.update_before_contraction(v, graph);
-            neighbors.extend(graph.get_neighborhood(v, 1));
-            independent_node_set.push(v);
+
+            self.update_before_contraction(state.node_id, graph);
+            neighbors.extend(graph.get_neighborhood(state.node_id, 2));
+            node_set.push(state.node_id);
         }
 
-        if !independent_node_set.is_empty() {
-            return Some(independent_node_set);
+        if !node_set.is_empty() {
+            return Some(node_set);
         }
 
         None

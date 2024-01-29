@@ -37,7 +37,19 @@ impl Contractor {
     }
 
     pub fn get_graph(&mut self) -> ContractedGraph {
-        let shortcuts = self.contract();
+        let outgoing_edges = self.graph.forward_edges.clone();
+        let incoming_edges = self.graph.backward_edges.clone();
+
+        let shortcuts = self.contract_node_sets();
+
+        self.graph.forward_edges = outgoing_edges;
+        self.graph.backward_edges = incoming_edges;
+        for (shortcut, _) in &shortcuts {
+            self.graph.forward_edges[shortcut.source as usize].push(shortcut.clone());
+            self.graph.backward_edges[shortcut.target as usize].push(shortcut.clone());
+        }
+
+        self.removing_level_property();
 
         let map = shortcuts
             .into_iter()
@@ -59,19 +71,18 @@ impl Contractor {
     }
 
     pub fn contract(&mut self) -> Vec<(Edge, Vec<Edge>)> {
-        let outgoing_edges = self.graph.forward_edges.clone();
-        let incoming_edges = self.graph.backward_edges.clone();
-
         let mut shortcuts = Vec::new();
 
         let bar = ProgressBar::new(self.graph.forward_edges.len() as u64);
-        let style =
-            ProgressStyle::with_template("{wide_bar} {human_pos}/{human_len} {eta_precise}")
-                .unwrap();
-        bar.set_style(style);
+
         let mut level = 0;
-        while let Some(v) = self.queue.lazy_pop(&self.graph) {
-            shortcuts.append(&mut self.contract_node(v));
+        while let Some(v) = self.queue.pop(&self.graph) {
+            let shortcut_generator = ContractionHelper::new(&self.graph);
+            let mut this_shortcuts = shortcut_generator.generate_shortcuts(v, 10);
+            self.add_shortcuts(&this_shortcuts);
+            self.graph.disconnect(v);
+
+            shortcuts.append(&mut this_shortcuts);
             self.levels[v as usize] = level;
 
             level += 1;
@@ -79,32 +90,17 @@ impl Contractor {
         }
         bar.finish();
 
-        self.graph.forward_edges = outgoing_edges;
-        self.graph.backward_edges = incoming_edges;
-        for (shortcut, _) in &shortcuts {
-            self.graph.forward_edges[shortcut.source as usize].push(shortcut.clone());
-            self.graph.backward_edges[shortcut.target as usize].push(shortcut.clone());
-        }
-
-        self.removing_level_property();
-
         shortcuts
     }
 
-    pub fn contract_ins(&mut self) -> Vec<(Edge, Vec<Edge>)> {
-        let outgoing_edges = self.graph.forward_edges.clone();
-        let incoming_edges = self.graph.backward_edges.clone();
-
+    pub fn contract_node_sets(&mut self) -> Vec<(Edge, Vec<Edge>)> {
         let mut shortcuts = Vec::new();
 
         let bar = ProgressBar::new(self.graph.forward_edges.len() as u64);
-        let style =
-            ProgressStyle::with_template("{wide_bar} {human_pos}/{human_len} {eta_precise}")
-                .unwrap();
-        bar.set_style(style);
+
         let mut level = 0;
-        while let Some(ids) = self.queue.lazy_pop_independent_node_set(&self.graph) {
-            let mut this_shortcuts = ids
+        while let Some(node_set) = self.queue.pop_vec(&self.graph) {
+            let mut this_shortcuts = node_set
                 .par_iter()
                 .map(|&v| {
                     let shortcut_generator = ContractionHelper::new(&self.graph);
@@ -116,34 +112,16 @@ impl Contractor {
             self.add_shortcuts(&this_shortcuts);
             shortcuts.append(&mut this_shortcuts);
 
-            for v in ids {
+            for &v in node_set.iter() {
                 self.graph.disconnect(v);
                 self.levels[v as usize] = level;
-
-                level += 1;
-                bar.inc(1);
             }
+
+            bar.inc(node_set.len() as u64);
+            level += 1;
         }
         bar.finish();
 
-        self.graph.forward_edges = outgoing_edges;
-        self.graph.backward_edges = incoming_edges;
-        for (shortcut, _) in &shortcuts {
-            self.graph.forward_edges[shortcut.source as usize].push(shortcut.clone());
-            self.graph.backward_edges[shortcut.target as usize].push(shortcut.clone());
-        }
-
-        self.removing_level_property();
-
-        shortcuts
-    }
-
-    fn contract_node(&mut self, v: u32) -> Vec<(Edge, Vec<Edge>)> {
-        // U --> v --> W
-        let shortcut_generator = ContractionHelper::new(&self.graph);
-        let shortcuts = shortcut_generator.generate_shortcuts(v, 10);
-        self.add_shortcuts(&shortcuts);
-        self.graph.disconnect(v);
         shortcuts
     }
 
@@ -158,13 +136,13 @@ impl Contractor {
         println!("removing edges that violated level property");
         self.graph.forward_edges.iter_mut().for_each(|edges| {
             edges.retain(|edge| {
-                self.levels[edge.source as usize] < self.levels[edge.target as usize]
+                self.levels[edge.source as usize] <= self.levels[edge.target as usize]
             });
         });
 
         self.graph.backward_edges.iter_mut().for_each(|edges| {
             edges.retain(|edge| {
-                self.levels[edge.source as usize] > self.levels[edge.target as usize]
+                self.levels[edge.source as usize] >= self.levels[edge.target as usize]
             });
         });
     }
