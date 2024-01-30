@@ -1,9 +1,7 @@
-use ahash::{HashMap, HashMapExt};
-use indicatif::ParallelProgressIterator;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use serde_derive::{Deserialize, Serialize};
+use std::usize;
 
-use crate::routing::{route::RouteRequest, simple_algorithms::ch_bi_dijkstra::ChDijkstra};
+use ahash::{HashMap, HashMapExt};
+use serde_derive::{Deserialize, Serialize};
 
 use super::label_entry::LabelEntry;
 
@@ -55,60 +53,47 @@ impl Label {
     }
 
     pub fn set_predecessor(&mut self) {
+        // create map id -> idx
         let mut id_idx = HashMap::with_capacity(self.label.len());
-
         for idx in 0..self.label.len() {
             id_idx.insert(self.label[idx].id, idx as u32);
         }
 
+        // use map to set id (of predecessor) to idx (of predecessor)
         for entry in self.label.iter_mut() {
             entry.predecessor = *id_idx.get(&entry.predecessor).unwrap();
         }
     }
 
-    // pub fn get_cost(&self, other: &Label) -> Option<u32> {
-    //     let mut i_self = 0;
-    //     let mut i_other = 0;
+    pub fn get_subroute(&self, i_self: u32) -> Vec<u32> {
+        // println!("start subroute");
+        let mut route = Vec::new();
+        let mut idx = i_self;
 
-    //     let mut cost = u32::MAX;
+        // only guaranted to terminate if set_predecessor was called before
+        route.push(self.label[idx as usize].id);
+        while self.label[idx as usize].predecessor != idx {
+            route.push(self.label[idx as usize].predecessor);
+            idx = self.label[idx as usize].predecessor;
+        }
 
-    //     while i_self < self.label.len() && i_other < other.label.len() {
-    //         let self_entry = &self.label[i_self];
-    //         let other_entry = &other.label[i_other];
+        route
+    }
 
-    //         match self_entry.id.cmp(&other_entry.id) {
-    //             std::cmp::Ordering::Less => i_self += 1,
-    //             std::cmp::Ordering::Equal => {
-    //                 i_self += 1;
-    //                 i_other += 1;
+    pub fn get_route(&self, other: &Label) -> Option<Vec<u32>> {
+        let (_, i_self, i_other) = self.get_idx(other)?;
+        let mut f_route = self.get_subroute(i_self);
+        let mut b_route = other.get_subroute(i_other);
 
-    //                 let alternative_cost = self_entry.cost + other_entry.cost;
-    //                 if alternative_cost < cost {
-    //                     cost = alternative_cost;
-    //                 }
-    //             }
-    //             std::cmp::Ordering::Greater => i_other += 1,
-    //         }
-    //     }
+        if f_route.first() == b_route.first() {
+            f_route.remove(0);
+        }
 
-    //     if cost != u32::MAX {
-    //         return Some(cost);
-    //     }
+        b_route.reverse();
+        f_route.extend(b_route);
 
-    //     None
-    // }
-
-    // pub fn get_route(&self, other: &Label) -> Option<(u32, Vec<u32>)> {
-    //     let (cost, mut i_self, mut i_other) = self.get_idx(other)?;
-
-    //     let mut route = Vec::new();
-
-    //     while self.label[i_self as usize].predecessor != self.label[i_self as usize].id {
-    //         route.insert(0, self.label[i_self as usize].predecessor);
-    //     }
-
-    //     Some((cost, route))
-    // }
+        Some(f_route)
+    }
 
     pub fn get_cost(&self, other: &Label) -> Option<u32> {
         Some(self.get_idx(other)?.0)
@@ -120,6 +105,8 @@ impl Label {
         let mut i_other = 0;
 
         let mut cost = u32::MAX;
+        let mut min_i_self = 0;
+        let mut min_i_other = 0;
 
         while i_self < self.label.len() && i_other < other.label.len() {
             let self_entry = &self.label[i_self];
@@ -128,20 +115,22 @@ impl Label {
             match self_entry.id.cmp(&other_entry.id) {
                 std::cmp::Ordering::Less => i_self += 1,
                 std::cmp::Ordering::Equal => {
-                    i_self += 1;
-                    i_other += 1;
-
                     let alternative_cost = self_entry.cost + other_entry.cost;
                     if alternative_cost < cost {
                         cost = alternative_cost;
+                        min_i_self = i_self;
+                        min_i_other = i_other;
                     }
+
+                    i_self += 1;
+                    i_other += 1;
                 }
                 std::cmp::Ordering::Greater => i_other += 1,
             }
         }
 
         if cost != u32::MAX {
-            return Some((cost, i_self as u32, i_other as u32));
+            return Some((cost, min_i_self as u32, min_i_other as u32));
         }
 
         None

@@ -27,15 +27,20 @@ fn main() {
     let tests: Vec<RouteValidationRequest> = serde_json::from_reader(reader).unwrap();
 
     let reader = BufReader::new(File::open(args.hub_graph).unwrap());
-    let hub_graph: HubGraph = bincode::deserialize_from(reader).unwrap();
+    let mut hub_graph: HubGraph = bincode::deserialize_from(reader).unwrap();
 
     println!("avg label size is {}", hub_graph.get_avg_label_size());
+
+    hub_graph.set_predecessor();
+    println!("set_predecessor");
 
     let mut time_hl = Vec::new();
     tests.iter().progress().for_each(|test| {
         let start = Instant::now();
         let cost = hub_graph.get_cost(&test.request);
         time_hl.push(start.elapsed());
+
+        let route = hub_graph.get_route(&test.request);
 
         assert_eq!(cost, test.cost);
     });
