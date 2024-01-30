@@ -33,7 +33,7 @@ impl<'a> ContractionHelper<'a> {
 
         uv_edges
             .iter()
-            .par_bridge()
+            // .par_bridge()
             .flat_map(|uv_edge| {
                 let mut shortcuts = Vec::new();
                 let u = uv_edge.source;

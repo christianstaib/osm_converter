@@ -78,8 +78,9 @@ impl ChDijkstra {
 
     ///
     /// (contact_node, cost)
-    pub fn get_forward_label(&self, source: u32, depth_limit: u32) -> HashMap<u32, u32> {
+    pub fn get_forward_label(&self, source: u32, depth_limit: u32) -> HashMap<u32, (u32, u32)> {
         let mut costs = HashMap::new();
+        let mut predecessor = HashMap::new();
         let mut open = BinaryHeap::new();
         let mut expanded = HashSet::new();
 
@@ -88,6 +89,7 @@ impl ChDijkstra {
             value: source,
         });
         costs.insert(source, 0);
+        predecessor.insert(source, source);
 
         while let Some(state) = open.pop() {
             let current_node = state.value;
@@ -116,6 +118,7 @@ impl ChDijkstra {
                         let current_cost = *costs.get(&edge.target).unwrap_or(&u32::MAX);
                         if alternative_cost < current_cost {
                             costs.insert(edge.target, alternative_cost);
+                            predecessor.insert(edge.target, current_node);
                             open.push(State {
                                 key: alternative_cost,
                                 value: edge.target,
@@ -126,12 +129,16 @@ impl ChDijkstra {
         }
 
         costs
+            .iter()
+            .map(|(id, cost)| (*id, (*cost, *predecessor.get(id).unwrap())))
+            .collect()
     }
 
     ///
     /// (contact_node, cost)
-    pub fn get_backward_label(&self, source: u32, depth_limit: u32) -> HashMap<u32, u32> {
+    pub fn get_backward_label(&self, source: u32, depth_limit: u32) -> HashMap<u32, (u32, u32)> {
         let mut costs = HashMap::new();
+        let mut predecessor = HashMap::new();
         let mut open = BinaryHeap::new();
         let mut expanded = HashSet::new();
 
@@ -140,6 +147,7 @@ impl ChDijkstra {
             value: source,
         });
         costs.insert(source, 0);
+        predecessor.insert(source, source);
 
         while let Some(state) = open.pop() {
             let current_node = state.value;
@@ -176,6 +184,7 @@ impl ChDijkstra {
                         let current_cost = *costs.get(&edge.target).unwrap_or(&u32::MAX);
                         if alternative_cost < current_cost {
                             costs.insert(edge.target, alternative_cost);
+                            predecessor.insert(edge.target, current_node);
                             open.push(State {
                                 key: alternative_cost,
                                 value: edge.target,
@@ -186,6 +195,9 @@ impl ChDijkstra {
         }
 
         costs
+            .iter()
+            .map(|(id, cost)| (*id, (*cost, *predecessor.get(id).unwrap())))
+            .collect()
     }
 
     ///

@@ -70,6 +70,23 @@ impl HubGraph {
             .for_each(|backward_label| backward_label.prune_forward(&self.forward_labels));
     }
 
+    pub fn set_predecessor(&mut self) {
+        let style =
+            ProgressStyle::with_template("{wide_bar} {human_pos}/{human_len} {eta_precise}")
+                .unwrap();
+        let pb = ProgressBar::new((self.forward_labels.len() * 2) as u64);
+        pb.set_style(style);
+        self.forward_labels
+            .par_iter_mut()
+            .progress_with(pb.clone())
+            .for_each(|label| label.set_predecessor());
+        pb.set_position(self.forward_labels.len() as u64);
+        self.backward_labels
+            .par_iter_mut()
+            .progress_with(pb.clone())
+            .for_each(|label| label.set_predecessor());
+    }
+
     pub fn get_cost(&self, request: &RouteRequest) -> Option<u32> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
         let backward_label = self.backward_labels.get(request.target as usize)?;

@@ -98,14 +98,14 @@ impl Contractor {
 
         let bar = ProgressBar::new(self.graph.forward_edges.len() as u64);
 
+        // let mut node_size = Vec::new();
+
         let mut level = 0;
         while let Some(node_set) = self.queue.pop_vec(&self.graph) {
+            let shortcut_generator = ContractionHelper::new(&self.graph);
             let mut this_shortcuts = node_set
                 .par_iter()
-                .map(|&v| {
-                    let shortcut_generator = ContractionHelper::new(&self.graph);
-                    shortcut_generator.generate_shortcuts(v, 10)
-                })
+                .map(|&v| shortcut_generator.generate_shortcuts(v, 10))
                 .flatten()
                 .collect::<Vec<_>>();
 
@@ -118,6 +118,12 @@ impl Contractor {
             }
 
             bar.inc(node_set.len() as u64);
+            // node_size.push(node_set.len());
+            // println!(
+            //     "average node_set size = {}",
+            //     node_size.iter().map(|&num| num as u64).sum::<u64>() as f64
+            //         / node_size.len() as u64 as f64
+            // );
             level += 1;
         }
         bar.finish();
