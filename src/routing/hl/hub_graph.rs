@@ -7,7 +7,7 @@ use rayon::{
 use serde_derive::{Deserialize, Serialize};
 
 use crate::routing::{
-    route::{Route, RouteRequest, RouteResponse},
+    route::{Route, RouteRequest},
     simple_algorithms::ch_bi_dijkstra::ChDijkstra,
 };
 
