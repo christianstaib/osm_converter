@@ -80,10 +80,10 @@ create_hl:
 
 
 test_hl_stgt:
-	cargo run --bin test_hl --release -- --hub-graph $(STGT_HUBS) --test-path $(STGT_TESTS_JSON)
+	cargo run --bin test_hl --release -- --hub-graph $(STGT_HUBS) --fmi-path $(STGT_FMI) --test-path $(STGT_TESTS_JSON)
 
 test_hl:
-	cargo run --bin test_hl --release -- --hub-graph $(NETWORK_HUBS) --test-path $(NETWORK_TESTS)
+	cargo run --bin test_hl --release -- --hub-graph $(NETWORK_HUBS) --fmi-path $(NETWORK_FMI) --test-path $(NETWORK_TESTS)
 
 
 prune_hl_stgt:

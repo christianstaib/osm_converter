@@ -6,7 +6,10 @@ use std::{
 
 use clap::Parser;
 use indicatif::ProgressIterator;
-use osm_test::routing::{hl::hub_graph::HubGraph, route::RouteValidationRequest};
+use osm_test::routing::{
+    fast_graph::FastGraph, hl::hub_graph::HubGraph, naive_graph::NaiveGraph,
+    route::RouteValidationRequest,
+};
 
 /// Starts a routing service on localhost:3030/route
 #[derive(Parser, Debug)]
@@ -17,11 +20,17 @@ struct Args {
     hub_graph: String,
     /// Path of .fmi file
     #[arg(short, long)]
+    fmi_path: String,
+    /// Path of .fmi file
+    #[arg(short, long)]
     test_path: String,
 }
 
 fn main() {
     let args = Args::parse();
+
+    let graph = NaiveGraph::from_file(args.fmi_path.as_str());
+    let graph = FastGraph::new(&graph);
 
     let reader = BufReader::new(File::open(args.test_path.as_str()).unwrap());
     let tests: Vec<RouteValidationRequest> = serde_json::from_reader(reader).unwrap();
@@ -43,6 +52,7 @@ fn main() {
         let mut cost = None;
         if let Some(route) = route {
             cost = Some(route.cost);
+            graph.validate_route(&test.request, &route);
         }
         assert_eq!(cost, test.cost);
     });
