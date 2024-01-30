@@ -17,7 +17,7 @@ pub struct ChDijkstra {
 
 impl ChDijkstra {
     pub fn new(contracted_grap: &ContractedGraph) -> ChDijkstra {
-        let shortcuts = contracted_grap.map.iter().cloned().collect();
+        let shortcuts = contracted_grap.shortcuts_map.iter().cloned().collect();
         let graph = FastGraph::from_graph(&contracted_grap.graph);
         ChDijkstra { graph, shortcuts }
     }

@@ -34,7 +34,7 @@ fn main() {
     remove_edge_to_self(&mut graph);
 
     let start = Instant::now();
-    let contracted_graph = Contractor::get_graph_2(&graph);
+    let contracted_graph = Contractor::get_contracted_graph(&graph);
     println!("Generating ch took {:?}", start.elapsed());
 
     let writer = BufWriter::new(File::create(args.contracted_graph).unwrap());

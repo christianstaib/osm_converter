@@ -9,7 +9,7 @@ use super::{ch_queue::queue::CHQueue, contraction_helper::ContractionHelper};
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ContractedGraph {
     pub graph: Graph,
-    pub map: Vec<((u32, u32), u32)>,
+    pub shortcuts_map: Vec<((u32, u32), u32)>,
 }
 
 pub struct Contractor {
@@ -31,7 +31,7 @@ impl Contractor {
         }
     }
 
-    pub fn get_graph_2(graph: &Graph) -> ContractedGraph {
+    pub fn get_contracted_graph(graph: &Graph) -> ContractedGraph {
         let mut contractor = Contractor::new(graph);
         contractor.get_graph()
     }
@@ -44,12 +44,8 @@ impl Contractor {
 
         self.graph.forward_edges = outgoing_edges;
         self.graph.backward_edges = incoming_edges;
-        for (shortcut, _) in &shortcuts {
-            self.graph.forward_edges[shortcut.source as usize].push(shortcut.clone());
-            self.graph.backward_edges[shortcut.target as usize].push(shortcut.clone());
-        }
-
-        self.removing_level_property();
+        self.add_shortcuts(&shortcuts);
+        self.removing_edges_violating_level_property();
 
         let map = shortcuts
             .into_iter()
@@ -58,7 +54,7 @@ impl Contractor {
 
         ContractedGraph {
             graph: self.graph.clone(),
-            map,
+            shortcuts_map: map,
         }
     }
 
@@ -89,8 +85,6 @@ impl Contractor {
         let mut shortcuts = Vec::new();
 
         let bar = ProgressBar::new(self.graph.forward_edges.len() as u64);
-
-        // let mut node_size = Vec::new();
 
         let mut level = 0;
         while let Some(node_set) = self.queue.pop_vec(&self.graph) {
@@ -124,8 +118,7 @@ impl Contractor {
         }
     }
 
-    pub fn removing_level_property(&mut self) {
-        println!("removing edges that violated level property");
+    pub fn removing_edges_violating_level_property(&mut self) {
         self.graph.forward_edges.iter_mut().for_each(|edges| {
             edges.retain(|edge| {
                 self.levels[edge.source as usize] <= self.levels[edge.target as usize]
