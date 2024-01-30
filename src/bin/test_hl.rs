@@ -37,11 +37,13 @@ fn main() {
     let mut time_hl = Vec::new();
     tests.iter().progress().for_each(|test| {
         let start = Instant::now();
-        let cost = hub_graph.get_cost(&test.request);
+        let route = hub_graph.get_route(&test.request);
         time_hl.push(start.elapsed());
 
-        let route = hub_graph.get_route(&test.request);
-
+        let mut cost = None;
+        if let Some(route) = route {
+            cost = Some(route.cost);
+        }
         assert_eq!(cost, test.cost);
     });
 

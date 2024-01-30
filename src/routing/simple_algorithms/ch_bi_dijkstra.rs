@@ -12,7 +12,7 @@ use crate::routing::{
 #[derive(Clone)]
 pub struct ChDijkstra {
     pub graph: FastGraph,
-    pub shortcuts: HashMap<(u32, u32), Vec<(u32, u32)>>,
+    pub shortcuts: HashMap<(u32, u32), u32>,
 }
 
 impl ChDijkstra {

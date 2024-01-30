@@ -1,8 +1,7 @@
-
-
 use super::{
     graph::{Edge, Graph},
     naive_graph::NaiveGraph,
+    route::{Route, RouteRequest},
 };
 
 #[derive(Clone, Debug)]
@@ -98,7 +97,6 @@ impl FastGraph {
 
     pub fn new(graph: &NaiveGraph) -> FastGraph {
         let graph = graph.clone();
-        // graph.make_bidirectional();
 
         let forward_edges = FastEdgeAccess::new(&graph.edges);
 
@@ -106,10 +104,11 @@ impl FastGraph {
         let backward_edges = FastEdgeAccess::new(&inverted_edges);
 
         FastGraph {
-            // nodes: graph.nodes.clone(),
             num_nodes: graph.nodes.len() as u32,
             forward_edges,
             backward_edges,
         }
     }
+
+    pub fn validate_route(&self, request: &RouteRequest, route: &Route) {}
 }

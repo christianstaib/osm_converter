@@ -66,33 +66,33 @@ impl Label {
     }
 
     pub fn get_subroute(&self, i_self: u32) -> Vec<u32> {
-        // println!("start subroute");
         let mut route = Vec::new();
         let mut idx = i_self;
 
         // only guaranted to terminate if set_predecessor was called before
         route.push(self.label[idx as usize].id);
         while self.label[idx as usize].predecessor != idx {
-            route.push(self.label[idx as usize].predecessor);
             idx = self.label[idx as usize].predecessor;
+            route.push(self.label[idx as usize].id);
         }
 
         route
     }
 
-    pub fn get_route(&self, other: &Label) -> Option<Vec<u32>> {
-        let (_, i_self, i_other) = self.get_idx(other)?;
+    // cost, route_with_shortcuts
+    pub fn get_route(&self, other: &Label) -> Option<(u32, Vec<u32>)> {
+        let (cost, i_self, i_other) = self.get_idx(other)?;
         let mut f_route = self.get_subroute(i_self);
-        let mut b_route = other.get_subroute(i_other);
+        let b_route = other.get_subroute(i_other);
 
         if f_route.first() == b_route.first() {
             f_route.remove(0);
         }
 
-        b_route.reverse();
+        f_route.reverse();
         f_route.extend(b_route);
 
-        Some(f_route)
+        Some((cost, f_route))
     }
 
     pub fn get_cost(&self, other: &Label) -> Option<u32> {

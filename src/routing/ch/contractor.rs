@@ -9,7 +9,7 @@ use super::{ch_queue::queue::CHQueue, contraction_helper::ContractionHelper};
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ContractedGraph {
     pub graph: Graph,
-    pub map: Vec<((u32, u32), Vec<(u32, u32)>)>,
+    pub map: Vec<((u32, u32), u32)>,
 }
 
 pub struct Contractor {
@@ -53,15 +53,7 @@ impl Contractor {
 
         let map = shortcuts
             .into_iter()
-            .map(|(shortcut, edges)| {
-                (
-                    (shortcut.source, shortcut.target),
-                    edges
-                        .iter()
-                        .map(|edge| (edge.source, edge.target))
-                        .collect(),
-                )
-            })
+            .map(|(shortcut, edges)| ((shortcut.source, shortcut.target), edges[0].target))
             .collect();
 
         ContractedGraph {
@@ -118,12 +110,6 @@ impl Contractor {
             }
 
             bar.inc(node_set.len() as u64);
-            // node_size.push(node_set.len());
-            // println!(
-            //     "average node_set size = {}",
-            //     node_size.iter().map(|&num| num as u64).sum::<u64>() as f64
-            //         / node_size.len() as u64 as f64
-            // );
             level += 1;
         }
         bar.finish();

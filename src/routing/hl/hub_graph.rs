@@ -1,11 +1,15 @@
-use indicatif::{ParallelProgressIterator, ProgressBar, ProgressIterator, ProgressStyle};
+use ahash::HashMap;
+use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use rayon::{
     iter::{IntoParallelIterator, ParallelIterator},
     prelude::IntoParallelRefMutIterator,
 };
 use serde_derive::{Deserialize, Serialize};
 
-use crate::routing::{route::RouteRequest, simple_algorithms::ch_bi_dijkstra::ChDijkstra};
+use crate::routing::{
+    route::{Route, RouteRequest, RouteResponse},
+    simple_algorithms::ch_bi_dijkstra::ChDijkstra,
+};
 
 use super::label::Label;
 
@@ -13,6 +17,7 @@ use super::label::Label;
 pub struct HubGraph {
     pub forward_labels: Vec<Label>,
     pub backward_labels: Vec<Label>,
+    pub shortcuts: HashMap<(u32, u32), u32>,
 }
 
 impl HubGraph {
@@ -36,6 +41,7 @@ impl HubGraph {
         HubGraph {
             forward_labels,
             backward_labels,
+            shortcuts: dijkstra.shortcuts.clone(),
         }
     }
 
@@ -93,9 +99,26 @@ impl HubGraph {
         forward_label.get_cost(backward_label)
     }
 
-    pub fn get_route(&self, request: &RouteRequest) -> Option<Vec<u32>> {
+    pub fn get_route(&self, request: &RouteRequest) -> Option<Route> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
         let backward_label = self.backward_labels.get(request.target as usize)?;
-        forward_label.get_route(backward_label)
+        let (cost, mut route_with_shortcuts) = forward_label.get_route(backward_label)?;
+        let mut route = Vec::new();
+
+        while route_with_shortcuts.len() >= 2 {
+            let last_num = route_with_shortcuts.pop().unwrap();
+            let second_last_num = *route_with_shortcuts.last().unwrap();
+            let last = (second_last_num, last_num);
+            if let Some(&middle_node) = self.shortcuts.get(&last) {
+                route_with_shortcuts.extend([middle_node, last.1]);
+            } else {
+                route.push(last.1);
+            }
+        }
+
+        route.push(route_with_shortcuts[0]);
+        route.reverse();
+
+        Some(Route { nodes: route, cost })
     }
 }
