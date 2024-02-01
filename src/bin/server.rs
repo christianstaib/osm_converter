@@ -45,7 +45,7 @@ async fn main() {
     println!("Loading graph from file");
     let time = Instant::now();
     let naive_graph = NaiveGraph::from_file(args.fmi_path.as_str());
-    let graph = FastGraph::new(&naive_graph);
+    let graph = FastGraph::from_naive_graph(&naive_graph);
     let graph = Arc::new(graph);
     let fmi = Arc::new(Fmi::from_file(args.fmi_path.as_str()));
     println!("Finished loading graph, took {:?}.", time.elapsed());

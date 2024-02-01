@@ -49,7 +49,7 @@ impl FastGraph {
         self.out_edges.outgoing_edges(target)
     }
 
-    pub fn new(graph: &NaiveGraph) -> FastGraph {
+    pub fn from_naive_graph(graph: &NaiveGraph) -> FastGraph {
         let graph = graph.clone();
 
         let forward_edges = FastEdgeAccess::new(&graph.edges);

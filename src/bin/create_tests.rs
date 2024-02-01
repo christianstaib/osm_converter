@@ -30,7 +30,7 @@ fn main() {
     let args = Args::parse();
 
     let graph = NaiveGraph::from_file(args.fmi_path.as_str());
-    let graph = FastGraph::new(&graph);
+    let graph = FastGraph::from_naive_graph(&graph);
     let dijkstra = Dijkstra::new(&graph);
 
     let routes: Vec<_> = (0..args.number_of_tests)

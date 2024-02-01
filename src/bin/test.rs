@@ -55,7 +55,7 @@ fn main() {
     // let contracted_graph = NaiveGraph { nodes, edges };
     // let contracted_graph = FastGraph::new(&contracted_graph);
 
-    let graph = FastGraph::new(&naive_graph);
+    let graph = FastGraph::from_naive_graph(&naive_graph);
 
     let algorithms: Vec<(&str, Box<dyn Routing>)> = vec![
         // (
