@@ -1,5 +1,6 @@
 use super::{
-    graph::{DirectedEdge, Graph},
+    fast_edge_access::FastEdgeAccess,
+    graph::Graph,
     naive_graph::NaiveGraph,
     route::{Route, RouteRequest},
 };
@@ -12,87 +13,40 @@ pub struct FastEdge {
 
 #[derive(Clone)]
 /// Gives fast access to predecessor and successor in a graph.
+/// As FastGraph uses FastEdgeAccess, an out_edges head is acutally its tail.
 pub struct FastGraph {
-    // pub nodes: Vec<Point>,
     pub num_nodes: u32,
-    pub forward_edges: FastEdgeAccess,
-    pub backward_edges: FastEdgeAccess,
-}
-
-#[derive(Clone)]
-pub struct FastEdgeAccess {
-    pub edges: Vec<FastEdge>,
-    pub edges_start_at: Vec<u32>,
-}
-
-impl FastEdgeAccess {
-    pub fn new(edges: &Vec<DirectedEdge>) -> FastEdgeAccess {
-        let mut edges = edges.clone();
-
-        let mut edges_start_at: Vec<u32> = vec![0; edges.len() + 1];
-
-        // temporarrly adding a node in order to generate the list
-        edges.push(DirectedEdge {
-            head: edges.len() as u32,
-            tail: 0,
-            cost: 0,
-        });
-        edges.sort_unstable_by_key(|edge| edge.head);
-
-        let mut current = 0;
-        for (i, edge) in edges.iter().enumerate() {
-            if edge.head != current {
-                for index in (current + 1)..=edge.head {
-                    edges_start_at[index as usize] = i as u32;
-                }
-                current = edge.head;
-            }
-        }
-        edges.pop();
-        let edges: Vec<_> = edges.iter().map(|edge| edge.get_fast_edge()).collect();
-        let edges_start_at = edges_start_at.clone();
-
-        FastEdgeAccess {
-            edges,
-            edges_start_at,
-        }
-    }
-
-    pub fn outgoing_edges(&self, source: u32) -> &[FastEdge] {
-        let start = self.edges_start_at[source as usize] as usize;
-        let end = self.edges_start_at[source as usize + 1] as usize;
-
-        &self.edges[start..end]
-    }
+    pub in_edges: FastEdgeAccess,
+    pub out_edges: FastEdgeAccess,
 }
 
 impl FastGraph {
     pub fn from_graph(graph: &Graph) -> FastGraph {
         let num_nodes = graph.in_edges.len() as u32;
 
-        let forward_edges = graph.in_edges.iter().flatten().cloned().collect();
-        let forward_edges = FastEdgeAccess::new(&forward_edges);
+        let in_edges = graph.in_edges.iter().flatten().cloned().collect();
+        let in_edges = FastEdgeAccess::new(&in_edges);
 
-        let backward_edges = graph
+        let out_edges = graph
             .out_edges
             .iter()
             .flatten()
             .map(|edge| edge.get_inverted())
             .collect();
-        let backward_edges = FastEdgeAccess::new(&backward_edges);
+        let out_edges = FastEdgeAccess::new(&out_edges);
 
         FastGraph {
             num_nodes,
-            forward_edges,
-            backward_edges,
+            in_edges,
+            out_edges,
         }
     }
     pub fn outgoing_edges(&self, source: u32) -> &[FastEdge] {
-        self.forward_edges.outgoing_edges(source)
+        self.in_edges.outgoing_edges(source)
     }
 
     pub fn incoming_edges(&self, target: u32) -> &[FastEdge] {
-        self.backward_edges.outgoing_edges(target)
+        self.out_edges.outgoing_edges(target)
     }
 
     pub fn new(graph: &NaiveGraph) -> FastGraph {
@@ -105,8 +59,8 @@ impl FastGraph {
 
         FastGraph {
             num_nodes: graph.nodes.len() as u32,
-            forward_edges,
-            backward_edges,
+            in_edges: forward_edges,
+            out_edges: backward_edges,
         }
     }
 
@@ -121,7 +75,7 @@ impl FastGraph {
         for node_pair in route.nodes.windows(2) {
             if let [from, to] = node_pair {
                 let min_edge = self
-                    .forward_edges
+                    .in_edges
                     .outgoing_edges(*from)
                     .iter()
                     .filter(|edge| edge.target == *to)
