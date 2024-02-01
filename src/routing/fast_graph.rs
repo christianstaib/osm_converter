@@ -41,26 +41,26 @@ impl FastGraph {
             out_edges,
         }
     }
-    pub fn outgoing_edges(&self, source: u32) -> &[FastEdge] {
+    pub fn out_edges(&self, source: u32) -> &[FastEdge] {
         self.in_edges.outgoing_edges(source)
     }
 
-    pub fn incoming_edges(&self, target: u32) -> &[FastEdge] {
+    pub fn in_edges(&self, target: u32) -> &[FastEdge] {
         self.out_edges.outgoing_edges(target)
     }
 
     pub fn from_naive_graph(graph: &NaiveGraph) -> FastGraph {
         let graph = graph.clone();
 
-        let forward_edges = FastEdgeAccess::new(&graph.edges);
+        let out_edges = FastEdgeAccess::new(&graph.edges);
 
-        let inverted_edges = graph.edges.iter().map(|edge| edge.get_inverted()).collect();
-        let backward_edges = FastEdgeAccess::new(&inverted_edges);
+        let in_edges = graph.edges.iter().map(|edge| edge.get_inverted()).collect();
+        let in_edges = FastEdgeAccess::new(&in_edges);
 
         FastGraph {
             num_nodes: graph.nodes.len() as u32,
-            in_edges: forward_edges,
-            out_edges: backward_edges,
+            in_edges,
+            out_edges,
         }
     }
 

@@ -30,7 +30,7 @@ impl<'a> Dijkstra<'a> {
 
         while let Some(state) = data.pop() {
             self.graph
-                .outgoing_edges(state.value)
+                .out_edges(state.value)
                 .iter()
                 .for_each(|edge| data.update(state.value, edge, 0));
         }
@@ -43,7 +43,7 @@ impl<'a> Dijkstra<'a> {
 
         while let Some(state) = data.pop() {
             self.graph
-                .outgoing_edges(state.value)
+                .out_edges(state.value)
                 .iter()
                 .for_each(|edge| data.update(state.value, edge, 0));
         }

@@ -56,21 +56,18 @@ impl ChDijkstra {
                     continue;
                 }
 
-                self.graph
-                    .outgoing_edges(state.value)
-                    .iter()
-                    .for_each(|edge| {
-                        let alternative_cost = current_node_cost + edge.cost;
-                        let current_cost = *costs.get(&edge.target).unwrap_or(&u32::MAX);
-                        if alternative_cost < current_cost {
-                            costs.insert(edge.target, alternative_cost);
-                            predecessor.insert(edge.target, current_node);
-                            open.push(State {
-                                key: alternative_cost,
-                                value: edge.target,
-                            });
-                        }
-                    });
+                self.graph.out_edges(state.value).iter().for_each(|edge| {
+                    let alternative_cost = current_node_cost + edge.cost;
+                    let current_cost = *costs.get(&edge.target).unwrap_or(&u32::MAX);
+                    if alternative_cost < current_cost {
+                        costs.insert(edge.target, alternative_cost);
+                        predecessor.insert(edge.target, current_node);
+                        open.push(State {
+                            key: alternative_cost,
+                            value: edge.target,
+                        });
+                    }
+                });
             }
         }
 
@@ -122,21 +119,18 @@ impl ChDijkstra {
                 }
                 //
 
-                self.graph
-                    .incoming_edges(state.value)
-                    .iter()
-                    .for_each(|edge| {
-                        let alternative_cost = current_node_cost + edge.cost;
-                        let current_cost = *costs.get(&edge.target).unwrap_or(&u32::MAX);
-                        if alternative_cost < current_cost {
-                            costs.insert(edge.target, alternative_cost);
-                            predecessor.insert(edge.target, current_node);
-                            open.push(State {
-                                key: alternative_cost,
-                                value: edge.target,
-                            });
-                        }
-                    });
+                self.graph.in_edges(state.value).iter().for_each(|edge| {
+                    let alternative_cost = current_node_cost + edge.cost;
+                    let current_cost = *costs.get(&edge.target).unwrap_or(&u32::MAX);
+                    if alternative_cost < current_cost {
+                        costs.insert(edge.target, alternative_cost);
+                        predecessor.insert(edge.target, current_node);
+                        open.push(State {
+                            key: alternative_cost,
+                            value: edge.target,
+                        });
+                    }
+                });
             }
         }
 
@@ -168,21 +162,18 @@ impl ChDijkstra {
             if !expanded.contains(&current_node) && (new_depth <= depth_limit) {
                 expanded.insert(current_node);
 
-                self.graph
-                    .outgoing_edges(state.value)
-                    .iter()
-                    .for_each(|edge| {
-                        let alternative_cost = current_node_cost + edge.cost;
-                        let current_cost = *costs.get(&edge.target).unwrap_or(&u32::MAX);
-                        if alternative_cost < current_cost {
-                            costs.insert(edge.target, alternative_cost);
-                            depth.insert(edge.target, new_depth);
-                            open.push(State {
-                                key: alternative_cost,
-                                value: edge.target,
-                            });
-                        }
-                    });
+                self.graph.out_edges(state.value).iter().for_each(|edge| {
+                    let alternative_cost = current_node_cost + edge.cost;
+                    let current_cost = *costs.get(&edge.target).unwrap_or(&u32::MAX);
+                    if alternative_cost < current_cost {
+                        costs.insert(edge.target, alternative_cost);
+                        depth.insert(edge.target, new_depth);
+                        open.push(State {
+                            key: alternative_cost,
+                            value: edge.target,
+                        });
+                    }
+                });
             }
         }
         costs
@@ -210,21 +201,18 @@ impl ChDijkstra {
             if !expanded.contains(&current_node) && (new_depth <= depth_limit) {
                 expanded.insert(current_node);
 
-                self.graph
-                    .incoming_edges(state.value)
-                    .iter()
-                    .for_each(|edge| {
-                        let alternative_cost = current_node_cost + edge.cost;
-                        let current_cost = *costs.get(&edge.target).unwrap_or(&u32::MAX);
-                        if alternative_cost < current_cost {
-                            costs.insert(edge.target, alternative_cost);
-                            depth.insert(edge.target, new_depth);
-                            open.push(State {
-                                key: alternative_cost,
-                                value: edge.target,
-                            });
-                        }
-                    });
+                self.graph.in_edges(state.value).iter().for_each(|edge| {
+                    let alternative_cost = current_node_cost + edge.cost;
+                    let current_cost = *costs.get(&edge.target).unwrap_or(&u32::MAX);
+                    if alternative_cost < current_cost {
+                        costs.insert(edge.target, alternative_cost);
+                        depth.insert(edge.target, new_depth);
+                        open.push(State {
+                            key: alternative_cost,
+                            value: edge.target,
+                        });
+                    }
+                });
             }
         }
         costs
@@ -270,7 +258,7 @@ impl ChDijkstra {
                     }
 
                     self.graph
-                        .outgoing_edges(forward_state.value)
+                        .out_edges(forward_state.value)
                         .iter()
                         .for_each(|edge| {
                             let alternative_cost =
@@ -302,7 +290,7 @@ impl ChDijkstra {
                     }
 
                     self.graph
-                        .incoming_edges(backward_state.value)
+                        .in_edges(backward_state.value)
                         .iter()
                         .for_each(|edge| {
                             let alternative_cost =
@@ -371,7 +359,7 @@ impl ChDijkstra {
                     }
 
                     self.graph
-                        .outgoing_edges(forward_state.value)
+                        .out_edges(forward_state.value)
                         .iter()
                         .for_each(|edge| {
                             let alternative_cost =
@@ -405,7 +393,7 @@ impl ChDijkstra {
                     }
 
                     self.graph
-                        .incoming_edges(backward_state.value)
+                        .in_edges(backward_state.value)
                         .iter()
                         .for_each(|edge| {
                             let alternative_cost =

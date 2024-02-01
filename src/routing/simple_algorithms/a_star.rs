@@ -23,13 +23,10 @@ impl<'a> AStar<'a> {
                 break;
             }
 
-            self.graph
-                .outgoing_edges(state.value)
-                .iter()
-                .for_each(|edge| {
-                    let h = heuristic.lower_bound(edge.target);
-                    data.update(state.value, edge, h);
-                })
+            self.graph.out_edges(state.value).iter().for_each(|edge| {
+                let h = heuristic.lower_bound(edge.target);
+                data.update(state.value, edge, h);
+            })
         }
 
         RouteResponse {

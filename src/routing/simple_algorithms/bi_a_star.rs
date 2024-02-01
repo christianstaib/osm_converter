@@ -94,7 +94,7 @@ impl<'a> BiAStar<'a> {
                     }
                 }
                 self.graph
-                    .outgoing_edges(forward_state.value)
+                    .out_edges(forward_state.value)
                     .iter()
                     .for_each(|edge| {
                         let h = heu.p_f(edge.target);
@@ -113,7 +113,7 @@ impl<'a> BiAStar<'a> {
                     }
                 }
                 self.graph
-                    .incoming_edges(backward_state.value)
+                    .in_edges(backward_state.value)
                     .iter()
                     .for_each(|edge| {
                         let h = heu.p_r(edge.target);
