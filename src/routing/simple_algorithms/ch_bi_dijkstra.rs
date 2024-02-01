@@ -24,60 +24,6 @@ impl ChDijkstra {
 
     ///
     /// (contact_node, cost)
-    pub fn get_forward_label_vec(&self, source: u32, depth_limit: u32) -> Vec<u32> {
-        let mut costs = vec![u32::MAX; self.graph.num_nodes as usize];
-        let mut open = BinaryHeap::new();
-        let mut expanded = vec![false; self.graph.num_nodes as usize];
-
-        open.push(State {
-            key: 0,
-            value: source,
-        });
-        costs[source as usize] = 0;
-
-        while let Some(state) = open.pop() {
-            let current_node = state.value;
-            if !expanded[current_node as usize] {
-                expanded[current_node as usize] = true;
-
-                let current_node_cost = costs[current_node as usize];
-
-                let backward_search = self.backward_search(current_node, depth_limit);
-                let incoming_min = backward_search
-                    .iter()
-                    .map(|(node, cost)| {
-                        costs[*node as usize].checked_add(*cost).unwrap_or(u32::MAX)
-                    })
-                    .min()
-                    .unwrap_or(u32::MAX);
-
-                if current_node_cost > incoming_min {
-                    costs[current_node as usize] = u32::MAX;
-                    continue;
-                }
-
-                self.graph
-                    .outgoing_edges(state.value)
-                    .iter()
-                    .for_each(|edge| {
-                        let alternative_cost = current_node_cost + edge.cost;
-                        let current_cost = costs[edge.target as usize];
-                        if alternative_cost < current_cost {
-                            costs[edge.target as usize] = alternative_cost;
-                            open.push(State {
-                                key: alternative_cost,
-                                value: edge.target,
-                            });
-                        }
-                    });
-            }
-        }
-
-        costs
-    }
-
-    ///
-    /// (contact_node, cost)
     pub fn get_forward_label(&self, source: u32, depth_limit: u32) -> HashMap<u32, (u32, u32)> {
         let mut costs = HashMap::new();
         let mut predecessor = HashMap::new();
