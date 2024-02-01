@@ -92,10 +92,3 @@ prune_hl_stgt:
 prune_hl:
 	cargo run --bin prune_hl --release -- --hub-graph $(NETWORK_HUBS) --pruned-hub-graph $(NETWORK_HUBS_PRUNED)
 
-
-predict_hl_stgt:
-	cargo run --bin predict_hl --release -- --contracted-graph $(STGT_CONTRACTED) --test-path $(STGT_TESTS_JSON) --hop-limit $(HOP_LIMIT)
-
-predict_hl:
-	cargo run --bin predict_hl --release -- --contracted-graph $(NETWORK_CONTRACTED) --test-path $(NETWORK_TESTS) --hop-limit $(HOP_LIMIT)
-

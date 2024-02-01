@@ -1,5 +1,5 @@
-use indicatif::{ProgressBar, ProgressStyle};
-use rayon::iter::{IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use indicatif::ProgressBar;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
 use crate::routing::graph::{Edge, Graph};
@@ -58,7 +58,8 @@ impl Contractor {
         }
     }
 
-    pub fn contract(&mut self) -> Vec<(Edge, Vec<Edge>)> {
+    /// Generates contraction hierarchy where one node at a time is contracted.
+    pub fn contract_single_nodes(&mut self) -> Vec<(Edge, Vec<Edge>)> {
         let mut shortcuts = Vec::new();
 
         let bar = ProgressBar::new(self.graph.forward_edges.len() as u64);
@@ -67,10 +68,11 @@ impl Contractor {
         while let Some(v) = self.queue.pop(&self.graph) {
             let shortcut_generator = ContractionHelper::new(&self.graph);
             let mut this_shortcuts = shortcut_generator.generate_shortcuts(v, 10);
-            self.add_shortcuts(&this_shortcuts);
-            self.graph.disconnect(v);
 
+            self.add_shortcuts(&this_shortcuts);
             shortcuts.append(&mut this_shortcuts);
+
+            self.graph.disconnect(v);
             self.levels[v as usize] = level;
 
             level += 1;
@@ -81,6 +83,8 @@ impl Contractor {
         shortcuts
     }
 
+    /// Generates contraction hierarchy where nodes from independent node sets are contracted
+    /// simultainously.
     pub fn contract_node_sets(&mut self) -> Vec<(Edge, Vec<Edge>)> {
         let mut shortcuts = Vec::new();
 
