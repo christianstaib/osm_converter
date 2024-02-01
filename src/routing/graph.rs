@@ -70,9 +70,19 @@ impl Graph {
         graph
     }
 
-    pub fn get_neighborhood(&self, node: u32, hops: u32) -> HashSet<u32> {
+    pub fn in_edges(&self, vertex: u32) -> &[DirectedEdge] {
+        self.in_edges.get(vertex as usize).unwrap()
+    }
+
+    pub fn out_edges(&self, vertex: u32) -> &[DirectedEdge] {
+        self.out_edges.get(vertex as usize).unwrap()
+    }
+
+    /// Returns all verticies reachable within `hops` hops of `vertex` as well all verticies that can
+    /// reach `vertex` within `hops` hops. This includes `vertex` itself.
+    pub fn get_neighborhood(&self, vertex: u32, hops: u32) -> HashSet<u32> {
         let mut neighbors = HashSet::new();
-        neighbors.insert(node);
+        neighbors.insert(vertex);
 
         for _ in 0..hops {
             let mut new_neighbors = HashSet::new();
@@ -99,38 +109,27 @@ impl Graph {
         self.out_edges[edge.tail as usize].push(edge.clone());
     }
 
-    /// Remove an edge from the graph.
+    /// Removes an edge from the graph.
     pub fn remove_edge(&mut self, edge: &DirectedEdge) {
         if let Some(in_edges) = self.in_edges.get_mut(edge.head as usize) {
             in_edges.retain(|in_edge| in_edge != edge);
         }
 
         if let Some(out_edges) = self.out_edges.get_mut(edge.tail as usize) {
-            out_edges.retain(|in_edge| in_edge != edge);
+            out_edges.retain(|out_edge| out_edge != edge);
         }
     }
 
     /// Removes the node from the graph.
-    ///
-    /// Removing means, that afterwards, there will be no edges going into node or going out of
-    /// node.
-    pub fn disconnect(&mut self, node: u32) {
-        let outgoing_edges = std::mem::take(&mut self.in_edges[node as usize]);
-        outgoing_edges.iter().for_each(|outgoing_edge| {
-            let idx = self.out_edges[outgoing_edge.tail as usize]
-                .iter()
-                .position(|backward_edge| outgoing_edge == backward_edge)
-                .unwrap();
-            self.out_edges[outgoing_edge.tail as usize].remove(idx);
+    pub fn remove_vertex(&mut self, node: u32) {
+        let in_edges = std::mem::take(&mut self.in_edges[node as usize]);
+        in_edges.iter().for_each(|in_edge| {
+            self.out_edges[in_edge.tail as usize].retain(|out_edge| out_edge != in_edge);
         });
 
-        let incoming_edges = std::mem::take(&mut self.out_edges[node as usize]);
-        incoming_edges.iter().for_each(|incoming_edge| {
-            let idx = self.in_edges[incoming_edge.head as usize]
-                .iter()
-                .position(|forward_edge| forward_edge == incoming_edge)
-                .unwrap();
-            self.in_edges[incoming_edge.head as usize].remove(idx);
+        let out_edges = std::mem::take(&mut self.out_edges[node as usize]);
+        out_edges.iter().for_each(|out_edge| {
+            self.in_edges[out_edge.head as usize].retain(|in_edge| in_edge != out_edge)
         });
     }
 }

@@ -72,7 +72,7 @@ impl Contractor {
             self.add_shortcuts(&this_shortcuts);
             shortcuts.append(&mut this_shortcuts);
 
-            self.graph.disconnect(v);
+            self.graph.remove_vertex(v);
             self.levels[v as usize] = level;
 
             level += 1;
@@ -103,7 +103,7 @@ impl Contractor {
             shortcuts.append(&mut this_shortcuts);
 
             for &v in node_set.iter() {
-                self.graph.disconnect(v);
+                self.graph.remove_vertex(v);
                 self.levels[v as usize] = level;
             }
 
