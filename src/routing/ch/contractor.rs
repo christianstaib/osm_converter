@@ -2,7 +2,7 @@ use indicatif::ProgressBar;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
-use crate::routing::graph::{Edge, Graph};
+use crate::routing::graph::{DirectedEdge, Graph};
 
 use super::{ch_queue::queue::CHQueue, contraction_helper::ContractionHelper};
 
@@ -20,7 +20,7 @@ pub struct Contractor {
 
 impl Contractor {
     pub fn new(graph: &Graph) -> Self {
-        let levels = vec![0; graph.forward_edges.len()];
+        let levels = vec![0; graph.in_edges.len()];
         let graph = graph.clone();
         let queue = CHQueue::new(&graph);
 
@@ -37,19 +37,19 @@ impl Contractor {
     }
 
     pub fn get_graph(&mut self) -> ContractedGraph {
-        let outgoing_edges = self.graph.forward_edges.clone();
-        let incoming_edges = self.graph.backward_edges.clone();
+        let outgoing_edges = self.graph.in_edges.clone();
+        let incoming_edges = self.graph.out_edges.clone();
 
         let shortcuts = self.contract_node_sets();
 
-        self.graph.forward_edges = outgoing_edges;
-        self.graph.backward_edges = incoming_edges;
+        self.graph.in_edges = outgoing_edges;
+        self.graph.out_edges = incoming_edges;
         self.add_shortcuts(&shortcuts);
         self.removing_edges_violating_level_property();
 
         let map = shortcuts
             .into_iter()
-            .map(|(shortcut, edges)| ((shortcut.source, shortcut.target), edges[0].target))
+            .map(|(shortcut, edges)| ((shortcut.head, shortcut.tail), edges[0].tail))
             .collect();
 
         ContractedGraph {
@@ -59,10 +59,10 @@ impl Contractor {
     }
 
     /// Generates contraction hierarchy where one node at a time is contracted.
-    pub fn contract_single_nodes(&mut self) -> Vec<(Edge, Vec<Edge>)> {
+    pub fn contract_single_nodes(&mut self) -> Vec<(DirectedEdge, Vec<DirectedEdge>)> {
         let mut shortcuts = Vec::new();
 
-        let bar = ProgressBar::new(self.graph.forward_edges.len() as u64);
+        let bar = ProgressBar::new(self.graph.in_edges.len() as u64);
 
         let mut level = 0;
         while let Some(v) = self.queue.pop(&self.graph) {
@@ -85,10 +85,10 @@ impl Contractor {
 
     /// Generates contraction hierarchy where nodes from independent node sets are contracted
     /// simultainously.
-    pub fn contract_node_sets(&mut self) -> Vec<(Edge, Vec<Edge>)> {
+    pub fn contract_node_sets(&mut self) -> Vec<(DirectedEdge, Vec<DirectedEdge>)> {
         let mut shortcuts = Vec::new();
 
-        let bar = ProgressBar::new(self.graph.forward_edges.len() as u64);
+        let bar = ProgressBar::new(self.graph.in_edges.len() as u64);
 
         let mut level = 0;
         while let Some(node_set) = self.queue.pop_vec(&self.graph) {
@@ -115,24 +115,20 @@ impl Contractor {
         shortcuts
     }
 
-    fn add_shortcuts(&mut self, shortcuts: &Vec<(Edge, Vec<Edge>)>) {
+    fn add_shortcuts(&mut self, shortcuts: &Vec<(DirectedEdge, Vec<DirectedEdge>)>) {
         for (shortcut, _) in shortcuts {
-            self.graph.forward_edges[shortcut.source as usize].push(shortcut.clone());
-            self.graph.backward_edges[shortcut.target as usize].push(shortcut.clone());
+            self.graph.in_edges[shortcut.head as usize].push(shortcut.clone());
+            self.graph.out_edges[shortcut.tail as usize].push(shortcut.clone());
         }
     }
 
     pub fn removing_edges_violating_level_property(&mut self) {
-        self.graph.forward_edges.iter_mut().for_each(|edges| {
-            edges.retain(|edge| {
-                self.levels[edge.source as usize] <= self.levels[edge.target as usize]
-            });
+        self.graph.in_edges.iter_mut().for_each(|edges| {
+            edges.retain(|edge| self.levels[edge.head as usize] <= self.levels[edge.tail as usize]);
         });
 
-        self.graph.backward_edges.iter_mut().for_each(|edges| {
-            edges.retain(|edge| {
-                self.levels[edge.source as usize] >= self.levels[edge.target as usize]
-            });
+        self.graph.out_edges.iter_mut().for_each(|edges| {
+            edges.retain(|edge| self.levels[edge.head as usize] >= self.levels[edge.tail as usize]);
         });
     }
 }

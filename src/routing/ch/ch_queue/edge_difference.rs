@@ -9,8 +9,7 @@ impl PriorityTerm for EdgeDifferencePriority {
         let shortcut_generator = ContractionHelper::new(graph);
         let shortcuts = shortcut_generator.generate_shortcuts(v, 10);
 
-        let current_pairs =
-            graph.forward_edges[v as usize].len() + graph.backward_edges[v as usize].len();
+        let current_pairs = graph.in_edges[v as usize].len() + graph.out_edges[v as usize].len();
 
         shortcuts.len() as i32 - current_pairs as i32
     }

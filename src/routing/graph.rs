@@ -5,66 +5,69 @@ use serde_derive::{Deserialize, Serialize};
 use super::{fast_graph::FastEdge, naive_graph::NaiveGraph};
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Edge {
-    pub source: u32,
-    pub target: u32,
+pub struct DirectedEdge {
+    pub head: u32,
+    pub tail: u32,
     pub cost: u32,
 }
 
-impl Edge {
-    pub fn new(source: u32, target: u32, cost: u32) -> Edge {
-        Edge {
-            source,
-            target,
-            cost,
-        }
+impl DirectedEdge {
+    pub fn new(head: u32, tail: u32, cost: u32) -> DirectedEdge {
+        DirectedEdge { head, tail, cost }
     }
 
-    pub fn get_inverted(&self) -> Edge {
-        Edge {
-            source: self.target,
-            target: self.source,
+    pub fn get_inverted(&self) -> DirectedEdge {
+        DirectedEdge {
+            head: self.tail,
+            tail: self.head,
             cost: self.cost,
         }
     }
-}
 
-impl Edge {
-    pub fn make_fast(&self) -> FastEdge {
+    pub fn get_fast_edge(&self) -> FastEdge {
         FastEdge {
-            target: self.target,
+            target: self.tail,
             cost: self.cost,
         }
     }
 }
 
+/// Represents a directed graph where each node's incoming and outgoing edges are easily accessible.
+///
+/// This struct is designed to facilitate easy access to the neighborhood of nodes in a graph.
+/// It stores edges in two vectors: `in_edges` and `out_edges`, representing incoming and outgoing edges, respectively.
+///
+/// For each directed edge `v -> w`:
+/// - It is stored in `out_edges[v]`, allowing quick access to all successors of `v` (nodes that `v` points to).
+/// - It is also stored in `in_edges[w]`, enabling efficient access to all predecessors of `w` (nodes that point to `w`).
+///
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Graph {
-    //pub nodes: Vec<Point>,
-    pub forward_edges: Vec<Vec<Edge>>,
-    pub backward_edges: Vec<Vec<Edge>>,
+    pub in_edges: Vec<Vec<DirectedEdge>>,
+    pub out_edges: Vec<Vec<DirectedEdge>>,
+}
+
+impl Default for Graph {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Graph {
-    pub fn from_naive_graph(graph: &NaiveGraph) -> Graph {
-        let max_node_id = graph
-            .edges
-            .iter()
-            .map(|edge| std::cmp::max(edge.source, edge.target))
-            .max()
-            .unwrap_or(0);
-        let mut forward_edges = vec![Vec::new(); (max_node_id + 1) as usize];
-        let mut backward_edges = vec![Vec::new(); (max_node_id + 1) as usize];
-        graph.edges.iter().for_each(|edge| {
-            forward_edges[edge.source as usize].push(edge.clone());
-            backward_edges[edge.target as usize].push(edge.clone());
+    fn new() -> Self {
+        Graph {
+            in_edges: Vec::new(),
+            out_edges: Vec::new(),
+        }
+    }
+
+    pub fn from_naive_graph(naive_graph: &NaiveGraph) -> Graph {
+        let mut graph = Graph::new();
+        naive_graph.edges.iter().for_each(|edge| {
+            graph.add_edge(edge);
         });
 
-        Graph {
-            // nodes: graph.nodes.clone(),
-            forward_edges,
-            backward_edges,
-        }
+        graph
     }
 
     pub fn get_neighborhood(&self, node: u32, hops: u32) -> HashSet<u32> {
@@ -72,29 +75,39 @@ impl Graph {
         neighbors.insert(node);
 
         for _ in 0..hops {
-            let mut new_neighsbors = HashSet::new();
+            let mut new_neighbors = HashSet::new();
             for &node in neighbors.iter() {
-                new_neighsbors.extend(
-                    self.forward_edges[node as usize]
-                        .iter()
-                        .map(|edge| edge.target),
-                );
-                new_neighsbors.extend(
-                    self.backward_edges[node as usize]
-                        .iter()
-                        .map(|edge| edge.source),
-                );
+                new_neighbors.extend(self.in_edges[node as usize].iter().map(|edge| edge.tail));
+                new_neighbors.extend(self.out_edges[node as usize].iter().map(|edge| edge.head));
             }
-            neighbors.extend(new_neighsbors);
+            neighbors.extend(new_neighbors);
         }
 
         neighbors
     }
 
     /// Adds an edge to the graph.
-    pub fn add_edge(&mut self, edge: &Edge) {
-        self.forward_edges[edge.source as usize].push(edge.clone());
-        self.backward_edges[edge.target as usize].push(edge.clone());
+    pub fn add_edge(&mut self, edge: &DirectedEdge) {
+        if (self.in_edges.len() as u32) <= edge.head {
+            self.in_edges.resize((edge.head + 1) as usize, Vec::new());
+        }
+        self.in_edges[edge.head as usize].push(edge.clone());
+
+        if (self.out_edges.len() as u32) <= edge.tail {
+            self.out_edges.resize((edge.tail + 1) as usize, Vec::new());
+        }
+        self.out_edges[edge.tail as usize].push(edge.clone());
+    }
+
+    /// Remove an edge from the graph.
+    pub fn remove_edge(&mut self, edge: &DirectedEdge) {
+        if let Some(in_edges) = self.in_edges.get_mut(edge.head as usize) {
+            in_edges.retain(|in_edge| in_edge != edge);
+        }
+
+        if let Some(out_edges) = self.out_edges.get_mut(edge.tail as usize) {
+            out_edges.retain(|in_edge| in_edge != edge);
+        }
     }
 
     /// Removes the node from the graph.
@@ -102,22 +115,22 @@ impl Graph {
     /// Removing means, that afterwards, there will be no edges going into node or going out of
     /// node.
     pub fn disconnect(&mut self, node: u32) {
-        let outgoing_edges = std::mem::take(&mut self.forward_edges[node as usize]);
+        let outgoing_edges = std::mem::take(&mut self.in_edges[node as usize]);
         outgoing_edges.iter().for_each(|outgoing_edge| {
-            let idx = self.backward_edges[outgoing_edge.target as usize]
+            let idx = self.out_edges[outgoing_edge.tail as usize]
                 .iter()
                 .position(|backward_edge| outgoing_edge == backward_edge)
                 .unwrap();
-            self.backward_edges[outgoing_edge.target as usize].remove(idx);
+            self.out_edges[outgoing_edge.tail as usize].remove(idx);
         });
 
-        let incoming_edges = std::mem::take(&mut self.backward_edges[node as usize]);
+        let incoming_edges = std::mem::take(&mut self.out_edges[node as usize]);
         incoming_edges.iter().for_each(|incoming_edge| {
-            let idx = self.forward_edges[incoming_edge.source as usize]
+            let idx = self.in_edges[incoming_edge.head as usize]
                 .iter()
                 .position(|forward_edge| forward_edge == incoming_edge)
                 .unwrap();
-            self.forward_edges[incoming_edge.source as usize].remove(idx);
+            self.in_edges[incoming_edge.head as usize].remove(idx);
         });
     }
 }

@@ -12,9 +12,9 @@ pub struct DeletedNeighbors {
 
 impl PriorityTerm for DeletedNeighbors {
     fn priority(&self, v: u32, graph: &Graph) -> i32 {
-        let neighbors: HashSet<_> = graph.forward_edges[v as usize]
+        let neighbors: HashSet<_> = graph.in_edges[v as usize]
             .iter()
-            .map(|edge| edge.target)
+            .map(|edge| edge.tail)
             .collect();
         neighbors
             .iter()

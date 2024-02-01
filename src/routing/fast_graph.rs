@@ -1,5 +1,5 @@
 use super::{
-    graph::{Edge, Graph},
+    graph::{DirectedEdge, Graph},
     naive_graph::NaiveGraph,
     route::{Route, RouteRequest},
 };
@@ -26,30 +26,30 @@ pub struct FastEdgeAccess {
 }
 
 impl FastEdgeAccess {
-    pub fn new(edges: &Vec<Edge>) -> FastEdgeAccess {
+    pub fn new(edges: &Vec<DirectedEdge>) -> FastEdgeAccess {
         let mut edges = edges.clone();
 
         let mut edges_start_at: Vec<u32> = vec![0; edges.len() + 1];
 
         // temporarrly adding a node in order to generate the list
-        edges.push(Edge {
-            source: edges.len() as u32,
-            target: 0,
+        edges.push(DirectedEdge {
+            head: edges.len() as u32,
+            tail: 0,
             cost: 0,
         });
-        edges.sort_unstable_by_key(|edge| edge.source);
+        edges.sort_unstable_by_key(|edge| edge.head);
 
         let mut current = 0;
         for (i, edge) in edges.iter().enumerate() {
-            if edge.source != current {
-                for index in (current + 1)..=edge.source {
+            if edge.head != current {
+                for index in (current + 1)..=edge.head {
                     edges_start_at[index as usize] = i as u32;
                 }
-                current = edge.source;
+                current = edge.head;
             }
         }
         edges.pop();
-        let edges: Vec<_> = edges.iter().map(|edge| edge.make_fast()).collect();
+        let edges: Vec<_> = edges.iter().map(|edge| edge.get_fast_edge()).collect();
         let edges_start_at = edges_start_at.clone();
 
         FastEdgeAccess {
@@ -68,13 +68,13 @@ impl FastEdgeAccess {
 
 impl FastGraph {
     pub fn from_graph(graph: &Graph) -> FastGraph {
-        let num_nodes = graph.forward_edges.len() as u32;
+        let num_nodes = graph.in_edges.len() as u32;
 
-        let forward_edges = graph.forward_edges.iter().flatten().cloned().collect();
+        let forward_edges = graph.in_edges.iter().flatten().cloned().collect();
         let forward_edges = FastEdgeAccess::new(&forward_edges);
 
         let backward_edges = graph
-            .backward_edges
+            .out_edges
             .iter()
             .flatten()
             .map(|edge| edge.get_inverted())

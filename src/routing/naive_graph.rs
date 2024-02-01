@@ -5,12 +5,12 @@ use std::{
 
 use crate::sphere::geometry::point::Point;
 
-use super::graph::Edge;
+use super::graph::DirectedEdge;
 
 #[derive(Clone)]
 pub struct NaiveGraph {
     pub nodes: Vec<Point>,
-    pub edges: Vec<Edge>,
+    pub edges: Vec<DirectedEdge>,
 }
 
 impl NaiveGraph {
@@ -50,7 +50,7 @@ impl NaiveGraph {
                 let cost: u32 = values.next().unwrap().parse().unwrap();
                 values.next();
                 values.next();
-                Edge::new(source, target, cost)
+                DirectedEdge::new(source, target, cost)
             })
             .collect();
 

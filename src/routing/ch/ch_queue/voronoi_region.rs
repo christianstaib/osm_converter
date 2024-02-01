@@ -11,11 +11,11 @@ impl PriorityTerm for VoronoiRegion {
         let mut region_size = 0;
         neighbors.iter().for_each(|&neighbor| {
             if let Some(nearest) = graph
-                .forward_edges
+                .in_edges
                 .get(neighbor as usize)
                 .unwrap()
                 .iter()
-                .map(|edge| (edge.target, edge.cost))
+                .map(|edge| (edge.tail, edge.cost))
                 .min_by_key(|(_, cost)| *cost)
             {
                 if nearest.0 == v {

@@ -35,8 +35,8 @@ impl CHQueue {
         };
         queue.register(1, EdgeDifferencePriority::new());
         // queue.register(1, VoronoiRegion::new());
-        queue.register(1, DeletedNeighbors::new(graph.forward_edges.len() as u32));
-        queue.register(1, CostOfQueries::new(graph.forward_edges.len() as u32));
+        queue.register(1, DeletedNeighbors::new(graph.in_edges.len() as u32));
+        queue.register(1, CostOfQueries::new(graph.in_edges.len() as u32));
         queue.initialize(graph);
         queue
     }
@@ -116,7 +116,7 @@ impl CHQueue {
     }
 
     fn initialize(&mut self, graph: &Graph) {
-        let mut order: Vec<u32> = (0..graph.forward_edges.len()).map(|x| x as u32).collect();
+        let mut order: Vec<u32> = (0..graph.in_edges.len()).map(|x| x as u32).collect();
         order.shuffle(&mut rand::thread_rng());
 
         self.queue = order

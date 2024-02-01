@@ -2,7 +2,7 @@ use std::collections::{BinaryHeap, HashMap};
 
 use rayon::iter::{ParallelBridge, ParallelIterator};
 
-use crate::routing::graph::{Edge, Graph};
+use crate::routing::graph::{DirectedEdge, Graph};
 
 use super::binary_heap::MinimumItem;
 
@@ -26,9 +26,9 @@ impl<'a> ContractionHelper<'a> {
         &self,
         v: u32,
         max_hops_in_witness_search: u32,
-    ) -> Vec<(Edge, Vec<Edge>)> {
-        let uv_edges = &self.graph.backward_edges[v as usize];
-        let vw_edges = &self.graph.forward_edges[v as usize];
+    ) -> Vec<(DirectedEdge, Vec<DirectedEdge>)> {
+        let uv_edges = &self.graph.out_edges[v as usize];
+        let vw_edges = &self.graph.in_edges[v as usize];
         let max_vw_cost = vw_edges.iter().map(|edge| edge.cost).max().unwrap_or(0);
 
         uv_edges
@@ -36,20 +36,20 @@ impl<'a> ContractionHelper<'a> {
             .par_bridge()
             .flat_map(|uv_edge| {
                 let mut shortcuts = Vec::new();
-                let u = uv_edge.source;
+                let u = uv_edge.head;
                 let uv_cost = uv_edge.cost;
 
                 let max_cost = uv_cost + max_vw_cost;
                 let witness_cost = self.witness_search(u, v, max_cost, max_hops_in_witness_search);
 
                 for vw_ede in vw_edges.iter() {
-                    let w = vw_ede.target;
+                    let w = vw_ede.tail;
                     let vw_cost = vw_ede.cost;
                     let uw_cost = uv_cost + vw_cost;
                     if &uw_cost < witness_cost.get(&w).unwrap_or(&u32::MAX) {
-                        let shortcut = Edge {
-                            source: u,
-                            target: w,
+                        let shortcut = DirectedEdge {
+                            head: u,
+                            tail: w,
                             cost: uw_cost,
                         };
                         shortcuts.push((shortcut, vec![uv_edge.clone(), vw_ede.clone()]));
@@ -90,21 +90,21 @@ impl<'a> ContractionHelper<'a> {
         hops.insert(source, 0);
 
         while let Some(MinimumItem { node, .. }) = queue.pop() {
-            for edge in &self.graph.forward_edges[node as usize] {
+            for edge in &self.graph.in_edges[node as usize] {
                 let alternative_cost = cost[&node] + edge.cost;
                 let new_hops = hops[&node] + 1;
-                if (edge.target != without)
+                if (edge.tail != without)
                     && (alternative_cost <= max_cost)
                     && (new_hops <= max_hops)
                 {
-                    let current_cost = *cost.get(&edge.target).unwrap_or(&u32::MAX);
+                    let current_cost = *cost.get(&edge.tail).unwrap_or(&u32::MAX);
                     if alternative_cost < current_cost {
                         queue.push(MinimumItem {
                             cost: alternative_cost,
-                            node: edge.target,
+                            node: edge.tail,
                         });
-                        cost.insert(edge.target, alternative_cost);
-                        hops.insert(edge.target, new_hops);
+                        cost.insert(edge.tail, alternative_cost);
+                        hops.insert(edge.tail, new_hops);
                     }
                 }
             }
