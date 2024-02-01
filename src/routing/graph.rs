@@ -4,7 +4,7 @@ use serde_derive::{Deserialize, Serialize};
 
 use super::{fast_graph::FastEdge, naive_graph::NaiveGraph};
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord, Debug)]
 pub struct DirectedEdge {
     pub head: u32,
     pub tail: u32,
@@ -70,16 +70,45 @@ impl Graph {
         graph
     }
 
-    pub fn in_edges(&self, vertex: u32) -> &[DirectedEdge] {
-        self.in_edges.get(vertex as usize).unwrap()
+    pub fn validate(&self) {
+        // assert all edges are sorted in corretly
+        for (tail, out_edges) in self.out_edges.iter().enumerate() {
+            let tail = tail as u32;
+            for out_edge in out_edges.iter() {
+                assert_eq!(tail, out_edge.tail);
+            }
+        }
+        for (head, in_edges) in self.in_edges.iter().enumerate() {
+            let head = head as u32;
+            for in_edge in in_edges.iter() {
+                assert_eq!(head, in_edge.head);
+            }
+        }
+
+        // assert in_edges and out_edges contain the same edges
+        let mut out_edges: Vec<_> = self.out_edges.iter().flatten().cloned().collect();
+        out_edges.sort();
+        let mut in_edges: Vec<_> = self.in_edges.iter().flatten().cloned().collect();
+        in_edges.sort();
+
+        assert_eq!(out_edges.len(), in_edges.len());
+        for i in 0..out_edges.len() {
+            assert_eq!(out_edges[i], in_edges[i]);
+        }
     }
 
-    pub fn out_edges(&self, vertex: u32) -> &[DirectedEdge] {
-        self.out_edges.get(vertex as usize).unwrap()
-    }
-
-    /// Returns all verticies reachable within `hops` hops of `vertex` as well all verticies that can
-    /// reach `vertex` within `hops` hops. This includes `vertex` itself.
+    /// Retrieves the set of vertices reachable from and leading to `vertex` within a specified number of `hops`.
+    /// This includes the `vertex` itself.
+    ///
+    /// The function explores the graph in both directions - following outgoing edges (successors) and incoming edges (predecessors).
+    /// It does this iteratively for the number of hops specified, aggregating all the vertices encountered in this process.
+    ///
+    /// # Arguments
+    /// * `vertex`: The starting vertex from which the neighborhood is calculated.
+    /// * `hops`: The number of hops within which vertices are considered part of the neighborhood.
+    ///
+    /// # Returns
+    /// A `HashSet<u32>` containing all vertices that are within `hops` hops from or to the `vertex`.
     pub fn get_neighborhood(&self, vertex: u32, hops: u32) -> HashSet<u32> {
         let mut neighbors = HashSet::new();
         neighbors.insert(vertex);

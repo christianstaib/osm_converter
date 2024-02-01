@@ -5,9 +5,7 @@ use osm_test::routing::{
     graph::Graph,
     naive_graph::NaiveGraph,
     route::{RouteResponse, RouteValidationRequest, Routing},
-    simple_algorithms::{
-        dijkstra::Dijkstra,
-    },
+    simple_algorithms::dijkstra::Dijkstra,
 };
 use serde_derive::{Deserialize, Serialize};
 use std::{
@@ -42,6 +40,8 @@ fn main() {
     let args = Args::parse();
 
     let naive_graph = NaiveGraph::from_file(args.fmi_path.as_str());
+    let graph = Graph::from_naive_graph(&naive_graph);
+    graph.validate();
 
     // let reader = BufReader::new(File::open("graph.json").unwrap());
     // let contraced_graph: ContractedGraph = serde_json::from_reader(reader).unwrap();
