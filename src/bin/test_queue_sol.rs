@@ -9,8 +9,8 @@ use osm_test::routing::{
     naive_graph::NaiveGraph,
     route::{RouteRequest, Routing},
     simple_algorithms::{
-        bi_dijkstra::{self, BiDijkstra},
-        ch_bi_dijkstra::{self, ChDijkstra},
+        bi_dijkstra::BiDijkstra,
+        ch_bi_dijkstra::ChDijkstra,
         dijkstra::Dijkstra,
     },
 };

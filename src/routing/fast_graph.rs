@@ -75,7 +75,7 @@ impl FastGraph {
         for node_pair in route.nodes.windows(2) {
             if let [from, to] = node_pair {
                 let min_edge = self
-                    .in_edges
+                    .out_edges
                     .edges(*from)
                     .iter()
                     .filter(|edge| edge.target == *to)
