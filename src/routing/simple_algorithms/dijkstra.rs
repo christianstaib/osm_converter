@@ -32,7 +32,7 @@ impl<'a> Dijkstra<'a> {
             self.graph
                 .out_edges(state.value)
                 .iter()
-                .for_each(|edge| data.update(state.value, edge, 0));
+                .for_each(|edge| data.update(state.value, edge));
         }
 
         data
@@ -45,7 +45,7 @@ impl<'a> Dijkstra<'a> {
             self.graph
                 .out_edges(state.value)
                 .iter()
-                .for_each(|edge| data.update(state.value, edge, 0));
+                .for_each(|edge| data.update(state.value, edge));
         }
 
         data

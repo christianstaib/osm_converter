@@ -6,7 +6,10 @@ use osm_test::routing::{
     fast_graph::FastGraph,
     naive_graph::NaiveGraph,
     route::{RouteRequest, Routing},
-    simple_algorithms::dijkstra::Dijkstra,
+    simple_algorithms::{
+        bi_dijkstra::{self, BiDijkstra},
+        dijkstra::Dijkstra,
+    },
 };
 
 /// Starts a routing service on localhost:3030/route
@@ -31,6 +34,7 @@ fn main() {
     let graph = FastGraph::from_naive_graph(&graph);
 
     let dijkstra = Dijkstra::new(&graph);
+    let bi_dijkstra = BiDijkstra::new(&graph);
 
     let queue: Vec<_> = BufReader::new(File::open(args.queue_path).unwrap())
         .lines()
@@ -56,12 +60,20 @@ fn main() {
             target: source_target[0],
         };
 
+        // test dijkstra
         let response = dijkstra.get_route(&request);
         let mut cost: i32 = -1;
         if let Some(route) = response.route {
             cost = route.cost as i32;
         }
+        assert_eq!(true_cost, &cost, "dijkstra wrong");
 
-        assert_eq!(true_cost, &cost);
+        // test bi dijkstra
+        let response = bi_dijkstra.get_route(&request);
+        let mut cost: i32 = -1;
+        if let Some(route) = response.route {
+            cost = route.cost as i32;
+        }
+        assert_eq!(true_cost, &cost, "bi dijkstra wrong");
     }
 }

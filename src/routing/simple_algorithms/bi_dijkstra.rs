@@ -4,59 +4,27 @@ use crate::routing::{
     route::{Route, RouteRequest, RouteResponse, Routing},
 };
 
-use super::heuristics::Heuristic;
-
 #[derive(Clone)]
-pub struct BiAStar<'a> {
+pub struct BiDijkstra<'a> {
     pub graph: &'a FastGraph,
 }
 
-struct ConstantHeuristic {
-    forward_heuristic: Box<dyn Heuristic>,
-    backward_heuristic: Box<dyn Heuristic>,
-    s: u32,
-    t: u32,
-}
-
-impl ConstantHeuristic {
-    fn pi_f(&self, v: u32) -> u32 {
-        self.forward_heuristic.lower_bound(v)
-    }
-
-    fn pi_r(&self, v: u32) -> u32 {
-        self.backward_heuristic.lower_bound(v)
-    }
-
-    fn p_f(&self, v: u32) -> u32 {
-        (self.pi_f(v) - self.pi_r(v)) / 2 + self.pi_r(self.t) / 2
-    }
-
-    fn p_r(&self, v: u32) -> u32 {
-        (self.pi_r(v) - self.pi_f(v)) / 2 + self.pi_f(self.s) / 2
+impl<'a> Routing for BiDijkstra<'a> {
+    fn get_route(&self, route_request: &RouteRequest) -> RouteResponse {
+        self.get_data(&route_request)
     }
 }
 
-impl<'a> BiAStar<'a> {
-    pub fn new(graph: &'a FastGraph) -> BiAStar {
-        BiAStar { graph }
+impl<'a> BiDijkstra<'a> {
+    pub fn new(graph: &'a FastGraph) -> BiDijkstra {
+        BiDijkstra { graph }
     }
 
-    pub fn get_data(
-        &self,
-        request: &RouteRequest,
-        forward_heuristic: Box<dyn Heuristic>,
-        backward_heuristic: Box<dyn Heuristic>,
-    ) -> RouteResponse {
+    pub fn get_data(&self, request: &RouteRequest) -> RouteResponse {
         let mut forward_data = DijkstraData::new(self.graph.num_nodes as usize, request.source);
         let mut backward_data = DijkstraData::new(self.graph.num_nodes as usize, request.target);
 
-        let route = self.get_route(
-            request,
-            forward_heuristic,
-            backward_heuristic,
-            &mut forward_data,
-            &mut backward_data,
-        );
+        let route = self.get_route_data(&mut forward_data, &mut backward_data);
 
         RouteResponse {
             route,
@@ -64,23 +32,13 @@ impl<'a> BiAStar<'a> {
         }
     }
 
-    pub fn get_route(
+    pub fn get_route_data(
         &self,
-        request: &RouteRequest,
-        forward_heuristic: Box<dyn Heuristic>,
-        backward_heuristic: Box<dyn Heuristic>,
         forward_data: &mut DijkstraData,
         backward_data: &mut DijkstraData,
     ) -> Option<Route> {
         let mut minimal_cost = u32::MAX;
         let mut minimal_cost_node = u32::MAX;
-
-        let heu = ConstantHeuristic {
-            forward_heuristic,
-            backward_heuristic,
-            s: request.source,
-            t: request.target,
-        };
 
         loop {
             let forward_state = forward_data.pop();
@@ -96,10 +54,7 @@ impl<'a> BiAStar<'a> {
                 self.graph
                     .out_edges(forward_state.value)
                     .iter()
-                    .for_each(|edge| {
-                        let h = heu.p_f(edge.target);
-                        forward_data.update(forward_state.value, edge, h)
-                    });
+                    .for_each(|edge| forward_data.update(forward_state.value, edge));
             }
 
             let backward_state = backward_data.pop();
@@ -116,8 +71,7 @@ impl<'a> BiAStar<'a> {
                     .in_edges(backward_state.value)
                     .iter()
                     .for_each(|edge| {
-                        let h = heu.p_r(edge.target);
-                        backward_data.update(backward_state.value, edge, h);
+                        backward_data.update(backward_state.value, edge);
                     });
             }
 

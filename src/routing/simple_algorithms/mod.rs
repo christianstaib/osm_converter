@@ -1,10 +1,3 @@
-pub mod a_star;
-pub mod a_star_with_distance;
-pub mod a_star_with_landmarks;
-pub mod a_star_with_zero;
-pub mod bi_a_star;
-pub mod bi_a_star_with_landmarks;
-pub mod bi_a_star_with_zero;
+pub mod bi_dijkstra;
 pub mod ch_bi_dijkstra;
 pub mod dijkstra;
-pub mod heuristics;

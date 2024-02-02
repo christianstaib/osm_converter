@@ -49,13 +49,13 @@ impl DijkstraData {
         None
     }
 
-    pub fn update(&mut self, source: u32, edge: &FastEdge, h: u32) {
+    pub fn update(&mut self, source: u32, edge: &FastEdge) {
         let alternative_cost = self.nodes[source as usize].cost + edge.cost;
         let current_cost = self.nodes[edge.target as usize].cost;
         if alternative_cost < current_cost {
             self.nodes[edge.target as usize].predecessor = source;
             self.nodes[edge.target as usize].cost = alternative_cost;
-            self.queue.insert(alternative_cost + h, edge.target);
+            self.queue.insert(alternative_cost, edge.target);
         }
     }
 

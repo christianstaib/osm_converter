@@ -1,11 +1,10 @@
 use std::sync::Arc;
 use std::time::Instant;
 
-use osm_test::routing::fast_graph::FastGraph;
 use osm_test::routing::naive_graph::NaiveGraph;
 use osm_test::routing::route::RouteRequest;
-use osm_test::routing::route::Routing;
-use osm_test::routing::simple_algorithms::a_star_with_landmarks::AStarWithLandmarks;
+use osm_test::routing::simple_algorithms::bi_dijkstra::BiDijkstra;
+use osm_test::routing::{fast_graph::FastGraph, route::Routing};
 use osm_test::sphere::geometry;
 use osm_test::sphere::geometry::linestring::Linestring;
 use osm_test::sphere::geometry::planet::Planet;
@@ -59,7 +58,7 @@ async fn main() {
             let target = fmi.nearest(route_request_lat_lon.to.0, route_request_lat_lon.to.1);
             let request = RouteRequest { source, target };
 
-            let dijkstra = AStarWithLandmarks::new(&graph);
+            let dijkstra = BiDijkstra::new(&graph);
             let start = Instant::now();
             let response = dijkstra.get_route(&request);
 
