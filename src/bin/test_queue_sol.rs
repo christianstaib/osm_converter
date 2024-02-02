@@ -3,11 +3,14 @@ use std::{fs::File, io::BufRead, io::BufReader};
 use clap::Parser;
 use indicatif::ProgressIterator;
 use osm_test::routing::{
+    ch::contractor::ContractedGraph,
     fast_graph::FastGraph,
+    hl::hub_graph::HubGraph,
     naive_graph::NaiveGraph,
     route::{RouteRequest, Routing},
     simple_algorithms::{
         bi_dijkstra::{self, BiDijkstra},
+        ch_bi_dijkstra::{self, ChDijkstra},
         dijkstra::Dijkstra,
     },
 };
@@ -19,6 +22,12 @@ struct Args {
     /// Path of .fmi file
     #[arg(short, long)]
     fmi_path: String,
+    /// Path of .fmi file
+    #[arg(short, long)]
+    fmi_ch_path: String,
+    /// Path of .fmi file
+    #[arg(short, long)]
+    fmi_hl_path: String,
     /// Path of .fmi file
     #[arg(short, long)]
     queue_path: String,
@@ -33,11 +42,16 @@ fn main() {
     let graph = NaiveGraph::from_file(args.fmi_path.as_str());
     let graph = FastGraph::from_naive_graph(&graph);
 
-    // println!("{:?}", graph.out_edges.edges.last().unwrap());
-    // panic!();
-
     let dijkstra = Dijkstra::new(&graph);
+
     let bi_dijkstra = BiDijkstra::new(&graph);
+
+    let reader = BufReader::new(File::open(args.fmi_ch_path).unwrap());
+    let ch_graph: ContractedGraph = bincode::deserialize_from(reader).unwrap();
+    let ch_bi_dijkstra = ChDijkstra::new(&ch_graph);
+
+    let reader = BufReader::new(File::open(args.fmi_hl_path).unwrap());
+    let hl_graph: HubGraph = bincode::deserialize_from(reader).unwrap();
 
     let queue: Vec<_> = BufReader::new(File::open(args.queue_path).unwrap())
         .lines()
@@ -75,6 +89,22 @@ fn main() {
         let response = bi_dijkstra.get_route(&request);
         let mut cost: i32 = -1;
         if let Some(route) = response.route {
+            cost = route.cost as i32;
+        }
+        assert_eq!(true_cost, &cost, "bi dijkstra wrong");
+
+        // test ch dijkstra
+        let response = ch_bi_dijkstra.get_route(&request);
+        let mut cost: i32 = -1;
+        if let Some(route) = response {
+            cost = route.cost as i32;
+        }
+        assert_eq!(true_cost, &cost, "bi dijkstra wrong");
+
+        // test hl
+        let response = hl_graph.get_route(&request);
+        let mut cost: i32 = -1;
+        if let Some(route) = response {
             cost = route.cost as i32;
         }
         assert_eq!(true_cost, &cost, "bi dijkstra wrong");
