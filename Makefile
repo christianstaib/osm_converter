@@ -40,6 +40,9 @@ server:
 test:
 	cargo run --bin test --release -- --fmi-path tests/data/fmi/network.fmi --tests-path tests/data/fmi/tests.json --number-of-tests $(NUM_TESTS)
 
+test_queue_sol:
+	cargo run --bin test_queue_sol --release -- --fmi-path $(STGT_FMI) --queue-path ~/Downloads/Benchs/stgtregbz.que --sol-path ~/Downloads/Benchs/stgtregbz.sol
+
 
 download:
 	curl $(INTERNET_OSM) -o $(NETWORK_OSM)
