@@ -33,6 +33,9 @@ fn main() {
     let graph = NaiveGraph::from_file(args.fmi_path.as_str());
     let graph = FastGraph::from_naive_graph(&graph);
 
+    // println!("{:?}", graph.out_edges.edges.last().unwrap());
+    // panic!();
+
     let dijkstra = Dijkstra::new(&graph);
     let bi_dijkstra = BiDijkstra::new(&graph);
 
@@ -56,8 +59,8 @@ fn main() {
 
     for (source_target, true_cost) in queue.iter().zip(sol.iter()).progress() {
         let request = RouteRequest {
-            source: source_target[1],
-            target: source_target[0],
+            source: source_target[0],
+            target: source_target[1],
         };
 
         // test dijkstra

@@ -39,7 +39,7 @@ impl FastEdgeAccess {
         }
     }
 
-    pub fn outgoing_edges(&self, source: u32) -> &[FastEdge] {
+    pub fn edges(&self, source: u32) -> &[FastEdge] {
         let start = self.edges_start_at[source as usize] as usize;
         let end = self.edges_start_at[source as usize + 1] as usize;
 

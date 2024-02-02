@@ -25,19 +25,6 @@ impl<'a> Dijkstra<'a> {
         Dijkstra { graph }
     }
 
-    pub fn get_backward_data(&self, target: u32) -> DijkstraData {
-        let mut data = DijkstraData::new(self.graph.num_nodes as usize, target);
-
-        while let Some(state) = data.pop() {
-            self.graph
-                .out_edges(state.value)
-                .iter()
-                .for_each(|edge| data.update(state.value, edge));
-        }
-
-        data
-    }
-
     pub fn get_forward_data(&self, source: u32) -> DijkstraData {
         let mut data = DijkstraData::new(self.graph.num_nodes as usize, source);
 

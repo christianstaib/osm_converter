@@ -24,16 +24,16 @@ impl FastGraph {
     pub fn from_graph(graph: &Graph) -> FastGraph {
         let num_nodes = graph.in_edges.len() as u32;
 
-        let in_edges = graph.in_edges.iter().flatten().cloned().collect();
-        let in_edges = FastEdgeAccess::new(&in_edges);
+        let out_edges = graph.in_edges.iter().flatten().cloned().collect();
+        let out_edges = FastEdgeAccess::new(&out_edges);
 
-        let out_edges = graph
+        let in_edges = graph
             .out_edges
             .iter()
             .flatten()
             .map(|edge| edge.get_inverted())
             .collect();
-        let out_edges = FastEdgeAccess::new(&out_edges);
+        let in_edges = FastEdgeAccess::new(&in_edges);
 
         FastGraph {
             num_nodes,
@@ -42,11 +42,11 @@ impl FastGraph {
         }
     }
     pub fn out_edges(&self, source: u32) -> &[FastEdge] {
-        self.in_edges.outgoing_edges(source)
+        self.out_edges.edges(source)
     }
 
     pub fn in_edges(&self, target: u32) -> &[FastEdge] {
-        self.out_edges.outgoing_edges(target)
+        self.in_edges.edges(target)
     }
 
     pub fn from_naive_graph(graph: &NaiveGraph) -> FastGraph {
@@ -76,7 +76,7 @@ impl FastGraph {
             if let [from, to] = node_pair {
                 let min_edge = self
                     .in_edges
-                    .outgoing_edges(*from)
+                    .edges(*from)
                     .iter()
                     .filter(|edge| edge.target == *to)
                     .min_by_key(|edge| edge.cost)
