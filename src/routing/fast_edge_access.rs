@@ -1,8 +1,8 @@
-use super::{fast_graph::FastEdge, graph::DirectedEdge};
+use super::{fast_graph::FastOutEdge, graph::DirectedEdge};
 
 #[derive(Clone)]
 pub struct FastEdgeAccess {
-    pub edges: Vec<FastEdge>,
+    pub edges: Vec<FastOutEdge>,
     pub edges_start_at: Vec<u32>,
 }
 
@@ -39,7 +39,7 @@ impl FastEdgeAccess {
         }
     }
 
-    pub fn edges(&self, source: u32) -> &[FastEdge] {
+    pub fn edges(&self, source: u32) -> &[FastOutEdge] {
         let start = self.edges_start_at[source as usize] as usize;
         let end = self.edges_start_at[source as usize + 1] as usize;
 

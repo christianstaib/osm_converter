@@ -1,7 +1,7 @@
 use std::usize;
 
 use super::{
-    fast_graph::FastEdge,
+    fast_graph::FastOutEdge,
     queue::heap_queue::{HeapQueue, State},
     route::Route,
 };
@@ -49,13 +49,13 @@ impl DijkstraData {
         None
     }
 
-    pub fn update(&mut self, source: u32, edge: &FastEdge) {
+    pub fn update(&mut self, source: u32, edge: &FastOutEdge) {
         let alternative_cost = self.nodes[source as usize].cost + edge.cost;
-        let current_cost = self.nodes[edge.target as usize].cost;
+        let current_cost = self.nodes[edge.head as usize].cost;
         if alternative_cost < current_cost {
-            self.nodes[edge.target as usize].predecessor = source;
-            self.nodes[edge.target as usize].cost = alternative_cost;
-            self.queue.insert(alternative_cost, edge.target);
+            self.nodes[edge.head as usize].predecessor = source;
+            self.nodes[edge.head as usize].cost = alternative_cost;
+            self.queue.insert(alternative_cost, edge.head);
         }
     }
 

@@ -6,8 +6,8 @@ use super::{
 };
 
 #[derive(Clone, Debug)]
-pub struct FastEdge {
-    pub target: u32,
+pub struct FastOutEdge {
+    pub head: u32,
     pub cost: u32,
 }
 
@@ -41,11 +41,11 @@ impl FastGraph {
             out_edges,
         }
     }
-    pub fn out_edges(&self, source: u32) -> &[FastEdge] {
+    pub fn out_edges(&self, source: u32) -> &[FastOutEdge] {
         self.out_edges.edges(source)
     }
 
-    pub fn in_edges(&self, target: u32) -> &[FastEdge] {
+    pub fn in_edges(&self, target: u32) -> &[FastOutEdge] {
         self.in_edges.edges(target)
     }
 
@@ -78,7 +78,7 @@ impl FastGraph {
                     .out_edges
                     .edges(*from)
                     .iter()
-                    .filter(|edge| edge.target == *to)
+                    .filter(|edge| edge.head == *to)
                     .min_by_key(|edge| edge.cost)
                     .expect(format!("no edge between {} and {} found", from, to).as_str());
                 edges.push(min_edge);
