@@ -1,13 +1,13 @@
 use super::{fast_graph::FastOutEdge, graph::DirectedEdge};
 
 #[derive(Clone)]
-pub struct FastEdgeAccess {
+pub struct FastOutEdgeAccess {
     pub edges: Vec<FastOutEdge>,
     pub edges_start_at: Vec<u32>,
 }
 
-impl FastEdgeAccess {
-    pub fn new(edges: &Vec<DirectedEdge>) -> FastEdgeAccess {
+impl FastOutEdgeAccess {
+    pub fn new(edges: &Vec<DirectedEdge>) -> FastOutEdgeAccess {
         let mut edges = edges.clone();
 
         let mut edges_start_at: Vec<u32> = vec![0; edges.len() + 1];
@@ -33,7 +33,7 @@ impl FastEdgeAccess {
         let edges: Vec<_> = edges.iter().map(|edge| edge.get_fast_edge()).collect();
         let edges_start_at = edges_start_at.clone();
 
-        FastEdgeAccess {
+        FastOutEdgeAccess {
             edges,
             edges_start_at,
         }

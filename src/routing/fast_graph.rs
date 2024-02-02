@@ -1,5 +1,5 @@
 use super::{
-    fast_edge_access::FastEdgeAccess,
+    fast_edge_access::FastOutEdgeAccess,
     graph::Graph,
     naive_graph::NaiveGraph,
     route::{Route, RouteRequest},
@@ -16,8 +16,8 @@ pub struct FastOutEdge {
 /// As FastGraph uses FastEdgeAccess, an out_edges head is acutally its tail.
 pub struct FastGraph {
     pub num_nodes: u32,
-    pub in_edges: FastEdgeAccess,
-    pub out_edges: FastEdgeAccess,
+    pub in_edges: FastOutEdgeAccess,
+    pub out_edges: FastOutEdgeAccess,
 }
 
 impl FastGraph {
@@ -25,7 +25,7 @@ impl FastGraph {
         let num_nodes = graph.in_edges.len() as u32;
 
         let out_edges = graph.in_edges.iter().flatten().cloned().collect();
-        let out_edges = FastEdgeAccess::new(&out_edges);
+        let out_edges = FastOutEdgeAccess::new(&out_edges);
 
         let in_edges = graph
             .out_edges
@@ -33,7 +33,7 @@ impl FastGraph {
             .flatten()
             .map(|edge| edge.get_inverted())
             .collect();
-        let in_edges = FastEdgeAccess::new(&in_edges);
+        let in_edges = FastOutEdgeAccess::new(&in_edges);
 
         FastGraph {
             num_nodes,
@@ -52,10 +52,10 @@ impl FastGraph {
     pub fn from_naive_graph(graph: &NaiveGraph) -> FastGraph {
         let graph = graph.clone();
 
-        let out_edges = FastEdgeAccess::new(&graph.edges);
+        let out_edges = FastOutEdgeAccess::new(&graph.edges);
 
         let in_edges = graph.edges.iter().map(|edge| edge.get_inverted()).collect();
-        let in_edges = FastEdgeAccess::new(&in_edges);
+        let in_edges = FastOutEdgeAccess::new(&in_edges);
 
         FastGraph {
             num_nodes: graph.nodes.len() as u32,
