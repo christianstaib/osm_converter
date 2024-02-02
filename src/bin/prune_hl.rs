@@ -28,6 +28,8 @@ fn main() {
     hub_graph.prune();
     println!("took {:?} to prune graph", start.elapsed());
 
+    hub_graph.set_predecessor();
+
     let writer = BufWriter::new(File::create(args.pruned_hub_graph).unwrap());
     bincode::serialize_into(writer, &hub_graph).unwrap();
 }

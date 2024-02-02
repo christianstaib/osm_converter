@@ -102,10 +102,10 @@ fn main() {
         assert_eq!(true_cost, &cost, "bi dijkstra wrong");
 
         // test hl
-        let response = hl_graph.get_route(&request);
+        let response = hl_graph.get_cost(&request);
         let mut cost: i32 = -1;
-        if let Some(route) = response {
-            cost = route.cost as i32;
+        if let Some(this_cost) = response {
+            cost = this_cost as i32;
         }
         assert_eq!(true_cost, &cost, "bi dijkstra wrong");
     }
