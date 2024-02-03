@@ -25,10 +25,10 @@ impl FastGraph {
     pub fn from_graph(graph: &Graph) -> FastGraph {
         let num_nodes = graph.in_edges.len() as u32;
 
-        let out_edges: Vec<_> = graph.in_edges.iter().flatten().cloned().collect();
+        let out_edges: Vec<_> = graph.out_edges.iter().flatten().cloned().collect();
         let out_edges = FastOutEdgeAccess::new(&out_edges);
 
-        let in_edges: Vec<_> = graph.out_edges.iter().flatten().cloned().collect();
+        let in_edges: Vec<_> = graph.in_edges.iter().flatten().cloned().collect();
         let in_edges = FastInEdgeAccess::new(&in_edges);
 
         FastGraph {
