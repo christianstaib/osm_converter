@@ -1,16 +1,16 @@
 use serde_derive::{Deserialize, Serialize};
 
-use super::{dijkstra_data::DijkstraData, fast_graph::FastGraph};
+use super::{dijkstra_data::DijkstraData, fast_graph::FastGraph, types::VertexId};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RouteRequest {
-    pub source: u32,
-    pub target: u32,
+    pub source: VertexId,
+    pub target: VertexId,
 }
 
 #[derive(Clone)]
 pub struct Route {
-    pub nodes: Vec<u32>,
+    pub nodes: Vec<VertexId>,
     pub cost: u32,
 }
 

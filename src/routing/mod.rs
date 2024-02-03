@@ -8,3 +8,4 @@ pub mod naive_graph;
 pub mod queue;
 pub mod route;
 pub mod simple_algorithms;
+pub mod types;
