@@ -50,19 +50,19 @@ impl Contractor {
         self.add_shortcuts(&shortcuts);
         self.removing_edges_violating_level_property();
 
-        let map = shortcuts
-            .into_iter()
-            .map(|(shortcut, edges)| ((shortcut.tail, shortcut.head), edges[0].head))
+        let shortcuts = shortcuts
+            .iter()
+            .map(|(tail_head, middle, _)| (*tail_head, *middle))
             .collect();
 
         ContractedGraph {
             graph: self.graph.clone(),
-            shortcuts_map: map,
+            shortcuts_map: shortcuts,
         }
     }
 
     /// Generates contraction hierarchy where one node at a time is contracted.
-    pub fn contract_single_nodes(&mut self) -> Vec<(DirectedEdge, Vec<DirectedEdge>)> {
+    pub fn contract_single_nodes(&mut self) -> Vec<((VertexId, VertexId), VertexId, u32)> {
         let mut shortcuts = Vec::new();
 
         let bar = ProgressBar::new(self.graph.in_edges.len() as u64);
@@ -88,7 +88,7 @@ impl Contractor {
 
     /// Generates contraction hierarchy where nodes from independent node sets are contracted
     /// simultainously.
-    pub fn contract_node_sets(&mut self) -> Vec<(DirectedEdge, Vec<DirectedEdge>)> {
+    pub fn contract_node_sets(&mut self) -> Vec<((VertexId, VertexId), VertexId, u32)> {
         let mut shortcuts = Vec::new();
 
         let bar = ProgressBar::new(self.graph.in_edges.len() as u64);
@@ -118,10 +118,15 @@ impl Contractor {
         shortcuts
     }
 
-    fn add_shortcuts(&mut self, shortcuts: &Vec<(DirectedEdge, Vec<DirectedEdge>)>) {
-        shortcuts
-            .iter()
-            .for_each(|(edge, _)| self.graph.add_edge(edge));
+    fn add_shortcuts(&mut self, shortcuts: &Vec<((VertexId, VertexId), VertexId, u32)>) {
+        shortcuts.iter().for_each(|(tail_head, _, cost)| {
+            let edge = DirectedEdge {
+                head: tail_head.1,
+                tail: tail_head.0,
+                cost: *cost,
+            };
+            self.graph.add_edge(&edge)
+        });
     }
 
     fn removing_edges_violating_level_property(&mut self) {

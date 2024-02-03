@@ -29,7 +29,7 @@ impl<'a> ContractionHelper<'a> {
         &self,
         v: u32,
         max_hops_in_witness_search: u32,
-    ) -> Vec<(DirectedEdge, Vec<DirectedEdge>)> {
+    ) -> Vec<((VertexId, VertexId), VertexId, u32)> {
         let uv_edges = &self.graph.in_edges[v as usize];
         let vw_edges = &self.graph.out_edges[v as usize];
         let max_vw_cost = vw_edges.iter().map(|edge| edge.cost).max().unwrap_or(0);
@@ -53,7 +53,8 @@ impl<'a> ContractionHelper<'a> {
                             head: w,
                             cost: uw_cost,
                         };
-                        shortcuts.push((shortcut, vec![uv_edge.clone(), vw_ede.clone()]));
+                        let edge = (u, w);
+                        shortcuts.push((edge, v, uw_cost));
                     }
                 }
                 shortcuts
