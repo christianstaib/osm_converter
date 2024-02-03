@@ -43,7 +43,7 @@ impl Contractor {
         let out_edges = self.graph.out_edges.clone();
         let in_edges = self.graph.in_edges.clone();
 
-        let shortcuts = self.contract_node_sets();
+        let shortcuts = self.contract_single_nodes();
 
         self.graph.out_edges = out_edges;
         self.graph.in_edges = in_edges;
