@@ -124,7 +124,7 @@ impl Contractor {
             .for_each(|(edge, _)| self.graph.add_edge(edge));
     }
 
-    pub fn removing_edges_violating_level_property(&mut self) {
+    fn removing_edges_violating_level_property(&mut self) {
         self.graph.out_edges.iter_mut().for_each(|edges| {
             edges.retain(|edge| self.levels[edge.head as usize] >= self.levels[edge.tail as usize]);
         });
