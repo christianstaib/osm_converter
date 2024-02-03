@@ -3,11 +3,12 @@ use super::{
     graph::Graph,
     naive_graph::NaiveGraph,
     route::{Route, RouteRequest},
+    types::VertexId,
 };
 
 #[derive(Clone, Debug)]
 pub struct FastOutEdge {
-    pub head: u32,
+    pub head: VertexId,
     pub cost: u32,
 }
 
@@ -24,10 +25,10 @@ impl FastGraph {
     pub fn from_graph(graph: &Graph) -> FastGraph {
         let num_nodes = graph.in_edges.len() as u32;
 
-        let out_edges = graph.in_edges.iter().flatten().cloned().collect();
+        let out_edges: Vec<_> = graph.in_edges.iter().flatten().cloned().collect();
         let out_edges = FastOutEdgeAccess::new(&out_edges);
 
-        let in_edges = graph.out_edges.iter().flatten().cloned().collect();
+        let in_edges: Vec<_> = graph.out_edges.iter().flatten().cloned().collect();
         let in_edges = FastInEdgeAccess::new(&in_edges);
 
         FastGraph {
