@@ -40,15 +40,13 @@ impl<'a> ContractionHelper<'a> {
             .flat_map(|uv_edge| {
                 let mut shortcuts = Vec::new();
                 let u = uv_edge.tail;
-                let uv_cost = uv_edge.cost;
 
-                let max_cost = uv_cost + max_vw_cost;
+                let max_cost = uv_edge.cost + max_vw_cost;
                 let witness_cost = self.witness_search(u, v, max_cost, max_hops_in_witness_search);
 
                 for vw_ede in vw_edges.iter() {
                     let w = vw_ede.head;
-                    let vw_cost = vw_ede.cost;
-                    let uw_cost = uv_cost + vw_cost;
+                    let uw_cost = uv_edge.cost + vw_ede.cost;
                     if &uw_cost < witness_cost.get(&w).unwrap_or(&u32::MAX) {
                         let shortcut = DirectedEdge {
                             tail: u,

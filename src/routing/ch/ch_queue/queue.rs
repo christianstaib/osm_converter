@@ -5,7 +5,9 @@ use indicatif::ProgressIterator;
 use rand::seq::SliceRandom;
 use rayon::iter::{ParallelBridge, ParallelIterator};
 
-use crate::routing::{ch::ch_queue::deleted_neighbors::DeletedNeighbors, graph::Graph};
+use crate::routing::{
+    ch::ch_queue::deleted_neighbors::DeletedNeighbors, graph::Graph, types::VertexId,
+};
 
 use super::{
     cost_of_queries::CostOfQueries, edge_difference::EdgeDifferencePriority, state::CHState,
@@ -35,8 +37,8 @@ impl CHQueue {
         };
         queue.register(1, EdgeDifferencePriority::new());
         // queue.register(1, VoronoiRegion::new());
-        queue.register(1, DeletedNeighbors::new(graph.in_edges.len() as u32));
-        queue.register(1, CostOfQueries::new(graph.in_edges.len() as u32));
+        queue.register(1, DeletedNeighbors::new(graph.out_edges.len() as u32));
+        queue.register(1, CostOfQueries::new(graph.out_edges.len() as u32));
         queue.initialize(graph);
         queue
     }
@@ -99,13 +101,13 @@ impl CHQueue {
 
     /// Gets called just before a v is contracted. Gives priority terms the oppernunity to updated
     /// neighboring nodes priorities.
-    fn update_before_contraction(&mut self, v: u32, graph: &Graph) {
+    fn update_before_contraction(&mut self, v: VertexId, graph: &Graph) {
         self.priority_terms
             .iter_mut()
             .for_each(|priority_term| priority_term.1.update_before_contraction(v, graph));
     }
 
-    pub fn get_priority(&self, v: u32, graph: &Graph) -> i32 {
+    pub fn get_priority(&self, v: VertexId, graph: &Graph) -> i32 {
         let priorities: Vec<i32> = self
             .priority_terms
             .iter()
@@ -116,7 +118,7 @@ impl CHQueue {
     }
 
     fn initialize(&mut self, graph: &Graph) {
-        let mut order: Vec<u32> = (0..graph.in_edges.len()).map(|x| x as u32).collect();
+        let mut order: Vec<u32> = (0..graph.out_edges.len()).map(|x| x as u32).collect();
         order.shuffle(&mut rand::thread_rng());
 
         self.queue = order

@@ -40,19 +40,19 @@ impl Contractor {
     }
 
     pub fn get_graph(&mut self) -> ContractedGraph {
-        let outgoing_edges = self.graph.in_edges.clone();
-        let incoming_edges = self.graph.out_edges.clone();
+        let out_edges = self.graph.out_edges.clone();
+        let in_edges = self.graph.in_edges.clone();
 
-        let shortcuts = self.contract_node_sets();
+        let shortcuts = self.contract_single_nodes();
 
-        self.graph.in_edges = outgoing_edges;
-        self.graph.out_edges = incoming_edges;
+        self.graph.out_edges = out_edges;
+        self.graph.in_edges = in_edges;
         self.add_shortcuts(&shortcuts);
         self.removing_edges_violating_level_property();
 
         let map = shortcuts
             .into_iter()
-            .map(|(shortcut, edges)| ((shortcut.head, shortcut.tail), edges[0].tail))
+            .map(|(shortcut, edges)| ((shortcut.tail, shortcut.head), edges[0].head))
             .collect();
 
         ContractedGraph {
@@ -119,10 +119,9 @@ impl Contractor {
     }
 
     fn add_shortcuts(&mut self, shortcuts: &Vec<(DirectedEdge, Vec<DirectedEdge>)>) {
-        for (shortcut, _) in shortcuts {
-            self.graph.out_edges[shortcut.tail as usize].push(shortcut.clone());
-            self.graph.in_edges[shortcut.head as usize].push(shortcut.clone());
-        }
+        shortcuts
+            .iter()
+            .for_each(|(edge, _)| self.graph.add_edge(edge));
     }
 
     pub fn removing_edges_violating_level_property(&mut self) {

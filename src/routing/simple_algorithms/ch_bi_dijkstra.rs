@@ -263,8 +263,7 @@ impl ChDijkstra {
                         .for_each(|edge| {
                             let alternative_cost =
                                 forward_costs.get(&current_node).unwrap() + edge.cost;
-                            let current_cost =
-                                *forward_costs.get(&edge.head).unwrap_or(&u32::MAX);
+                            let current_cost = *forward_costs.get(&edge.head).unwrap_or(&u32::MAX);
                             if alternative_cost < current_cost {
                                 forward_costs.insert(edge.head, alternative_cost);
                                 forward_open.push(State {
@@ -295,8 +294,7 @@ impl ChDijkstra {
                         .for_each(|edge| {
                             let alternative_cost =
                                 backward_costs.get(&current_node).unwrap() + edge.cost;
-                            let current_cost =
-                                *backward_costs.get(&edge.head).unwrap_or(&u32::MAX);
+                            let current_cost = *backward_costs.get(&edge.head).unwrap_or(&u32::MAX);
                             if alternative_cost < current_cost {
                                 backward_costs.insert(edge.head, alternative_cost);
                                 backward_open.push(State {
@@ -364,8 +362,7 @@ impl ChDijkstra {
                         .for_each(|edge| {
                             let alternative_cost =
                                 forward_costs.get(&current_node).unwrap() + edge.cost;
-                            let current_cost =
-                                *forward_costs.get(&edge.head).unwrap_or(&u32::MAX);
+                            let current_cost = *forward_costs.get(&edge.head).unwrap_or(&u32::MAX);
                             if alternative_cost < current_cost {
                                 forward_costs.insert(edge.head, alternative_cost);
                                 forward_predecessor.insert(edge.head, current_node);
@@ -398,8 +395,7 @@ impl ChDijkstra {
                         .for_each(|edge| {
                             let alternative_cost =
                                 backward_costs.get(&current_node).unwrap() + edge.cost;
-                            let current_cost =
-                                *backward_costs.get(&edge.head).unwrap_or(&u32::MAX);
+                            let current_cost = *backward_costs.get(&edge.head).unwrap_or(&u32::MAX);
                             if alternative_cost < current_cost {
                                 backward_costs.insert(edge.head, alternative_cost);
                                 backward_predecessor.insert(edge.head, current_node);
@@ -436,12 +432,10 @@ fn get_route(
     route.push(current);
     while let Some(new_current) = forward_predecessor.get(&current) {
         current = *new_current;
-        // route.insert(0, current);
     }
     current = meeting_node;
     while let Some(new_current) = backward_predecessor.get(&current) {
         current = *new_current;
-        // route.push(current);
     }
     let route = Route {
         nodes: route,
