@@ -30,7 +30,7 @@ impl FastOutEdgeAccess {
             }
         }
         edges.pop();
-        let edges: Vec<_> = edges.iter().map(|edge| edge.get_fast_edge()).collect();
+        let edges: Vec<_> = edges.iter().map(|edge| edge.get_out_fast_edge()).collect();
         let edges_start_at = edges_start_at.clone();
 
         FastOutEdgeAccess {
@@ -55,7 +55,7 @@ pub struct FastInEdgeAccess {
 
 impl FastInEdgeAccess {
     pub fn new(edges: &[DirectedEdge]) -> FastInEdgeAccess {
-        let mut edges: Vec<_> = edges.iter().map(|edge| edge.get_inverted()).collect();
+        let mut edges: Vec<_> = edges.iter().map(|edge| edge.inverted()).collect();
 
         let mut edges_start_at: Vec<u32> = vec![0; edges.len() + 1];
 
@@ -77,7 +77,7 @@ impl FastInEdgeAccess {
             }
         }
         edges.pop();
-        let edges: Vec<_> = edges.iter().map(|edge| edge.get_fast_edge()).collect();
+        let edges: Vec<_> = edges.iter().map(|edge| edge.get_out_fast_edge()).collect();
         let edges_start_at = edges_start_at.clone();
 
         FastInEdgeAccess {

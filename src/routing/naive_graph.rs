@@ -45,12 +45,12 @@ impl NaiveGraph {
                 // srcIDX trgIDX cost type maxspeed
                 let line = edge_line.unwrap();
                 let mut values = line.split_whitespace();
-                let source: u32 = values.next().unwrap().parse().unwrap();
-                let target: u32 = values.next().unwrap().parse().unwrap();
+                let tail: u32 = values.next().unwrap().parse().unwrap();
+                let head: u32 = values.next().unwrap().parse().unwrap();
                 let cost: u32 = values.next().unwrap().parse().unwrap();
                 values.next();
                 values.next();
-                DirectedEdge::new(source, target, cost)
+                DirectedEdge::new(tail, head, cost)
             })
             .collect();
 

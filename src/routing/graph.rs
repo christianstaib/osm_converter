@@ -16,7 +16,7 @@ impl DirectedEdge {
         DirectedEdge { head, tail, cost }
     }
 
-    pub fn get_inverted(&self) -> DirectedEdge {
+    pub fn inverted(&self) -> DirectedEdge {
         DirectedEdge {
             head: self.tail,
             tail: self.head,
@@ -24,7 +24,7 @@ impl DirectedEdge {
         }
     }
 
-    pub fn get_fast_edge(&self) -> FastOutEdge {
+    pub fn get_out_fast_edge(&self) -> FastOutEdge {
         FastOutEdge {
             head: self.tail,
             cost: self.cost,
