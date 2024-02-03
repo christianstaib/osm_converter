@@ -4,11 +4,12 @@ use super::{
     fast_graph::FastOutEdge,
     queue::heap_queue::{HeapQueue, State},
     route::Route,
+    types::VertexId,
 };
 
 #[derive(Clone)]
 pub struct DijsktraEntry {
-    pub predecessor: u32,
+    pub predecessor: VertexId,
     pub cost: u32,
     pub is_expanded: bool,
 }
@@ -30,7 +31,7 @@ pub struct DijkstraData {
 }
 
 impl DijkstraData {
-    pub fn new(num_nodes: usize, source: u32) -> DijkstraData {
+    pub fn new(num_nodes: usize, source: VertexId) -> DijkstraData {
         let mut queue = HeapQueue::new();
         let mut nodes = vec![DijsktraEntry::new(); num_nodes];
         nodes[source as usize].cost = 0;
@@ -49,7 +50,7 @@ impl DijkstraData {
         None
     }
 
-    pub fn update(&mut self, source: u32, edge: &FastOutEdge) {
+    pub fn update(&mut self, source: VertexId, edge: &FastOutEdge) {
         let alternative_cost = self.nodes[source as usize].cost + edge.cost;
         let current_cost = self.nodes[edge.head as usize].cost;
         if alternative_cost < current_cost {
@@ -59,7 +60,7 @@ impl DijkstraData {
         }
     }
 
-    pub fn get_route(&self, target: u32) -> Option<Route> {
+    pub fn get_route(&self, target: VertexId) -> Option<Route> {
         if self.nodes[target as usize].cost != u32::MAX {
             let mut route = vec![target];
             let mut current = target;

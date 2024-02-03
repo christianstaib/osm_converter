@@ -2,17 +2,17 @@ use std::{collections::HashSet, usize};
 
 use serde_derive::{Deserialize, Serialize};
 
-use super::{fast_graph::FastOutEdge, naive_graph::NaiveGraph};
+use super::{fast_graph::FastOutEdge, naive_graph::NaiveGraph, types::VertexId};
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord, Debug)]
 pub struct DirectedEdge {
-    pub head: u32,
-    pub tail: u32,
+    pub head: VertexId,
+    pub tail: VertexId,
     pub cost: u32,
 }
 
 impl DirectedEdge {
-    pub fn new(head: u32, tail: u32, cost: u32) -> DirectedEdge {
+    pub fn new(head: VertexId, tail: VertexId, cost: u32) -> DirectedEdge {
         DirectedEdge { head, tail, cost }
     }
 
