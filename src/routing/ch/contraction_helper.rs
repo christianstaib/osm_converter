@@ -2,7 +2,10 @@ use std::collections::{BinaryHeap, HashMap};
 
 use rayon::iter::{ParallelBridge, ParallelIterator};
 
-use crate::routing::graph::{DirectedEdge, Graph};
+use crate::routing::{
+    graph::{DirectedEdge, Graph},
+    types::VertexId,
+};
 
 use super::binary_heap::MinimumItem;
 
@@ -27,8 +30,8 @@ impl<'a> ContractionHelper<'a> {
         v: u32,
         max_hops_in_witness_search: u32,
     ) -> Vec<(DirectedEdge, Vec<DirectedEdge>)> {
-        let uv_edges = &self.graph.out_edges[v as usize];
-        let vw_edges = &self.graph.in_edges[v as usize];
+        let uv_edges = &self.graph.in_edges[v as usize];
+        let vw_edges = &self.graph.out_edges[v as usize];
         let max_vw_cost = vw_edges.iter().map(|edge| edge.cost).max().unwrap_or(0);
 
         uv_edges
@@ -36,20 +39,20 @@ impl<'a> ContractionHelper<'a> {
             .par_bridge()
             .flat_map(|uv_edge| {
                 let mut shortcuts = Vec::new();
-                let u = uv_edge.head;
+                let u = uv_edge.tail;
                 let uv_cost = uv_edge.cost;
 
                 let max_cost = uv_cost + max_vw_cost;
                 let witness_cost = self.witness_search(u, v, max_cost, max_hops_in_witness_search);
 
                 for vw_ede in vw_edges.iter() {
-                    let w = vw_ede.tail;
+                    let w = vw_ede.head;
                     let vw_cost = vw_ede.cost;
                     let uw_cost = uv_cost + vw_cost;
                     if &uw_cost < witness_cost.get(&w).unwrap_or(&u32::MAX) {
                         let shortcut = DirectedEdge {
-                            head: u,
-                            tail: w,
+                            tail: u,
+                            head: w,
                             cost: uw_cost,
                         };
                         shortcuts.push((shortcut, vec![uv_edge.clone(), vw_ede.clone()]));
@@ -73,8 +76,8 @@ impl<'a> ContractionHelper<'a> {
     /// Note: The search algorithm takes into account the cost and number of hops to reach each node. Nodes are included in the resulting map only if they meet the specified conditions regarding cost and hop count, and are not the `without` node.
     pub fn witness_search(
         &self,
-        source: u32,
-        without: u32,
+        source: VertexId,
+        without: VertexId,
         max_cost: u32,
         max_hops: u32,
     ) -> HashMap<u32, u32> {
@@ -90,21 +93,21 @@ impl<'a> ContractionHelper<'a> {
         hops.insert(source, 0);
 
         while let Some(MinimumItem { node, .. }) = queue.pop() {
-            for edge in &self.graph.in_edges[node as usize] {
+            for edge in &self.graph.out_edges[node as usize] {
                 let alternative_cost = cost[&node] + edge.cost;
                 let new_hops = hops[&node] + 1;
-                if (edge.tail != without)
+                if (edge.head != without)
                     && (alternative_cost <= max_cost)
                     && (new_hops <= max_hops)
                 {
-                    let current_cost = *cost.get(&edge.tail).unwrap_or(&u32::MAX);
+                    let current_cost = *cost.get(&edge.head).unwrap_or(&u32::MAX);
                     if alternative_cost < current_cost {
                         queue.push(MinimumItem {
                             cost: alternative_cost,
-                            node: edge.tail,
+                            node: edge.head,
                         });
-                        cost.insert(edge.tail, alternative_cost);
-                        hops.insert(edge.tail, new_hops);
+                        cost.insert(edge.head, alternative_cost);
+                        hops.insert(edge.head, new_hops);
                     }
                 }
             }

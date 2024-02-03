@@ -2,14 +2,17 @@ use indicatif::ProgressBar;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
-use crate::routing::graph::{DirectedEdge, Graph};
+use crate::routing::{
+    graph::{DirectedEdge, Graph},
+    types::VertexId,
+};
 
 use super::{ch_queue::queue::CHQueue, contraction_helper::ContractionHelper};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ContractedGraph {
     pub graph: Graph,
-    pub shortcuts_map: Vec<((u32, u32), u32)>,
+    pub shortcuts_map: Vec<((VertexId, VertexId), VertexId)>,
 }
 
 pub struct Contractor {
@@ -117,18 +120,18 @@ impl Contractor {
 
     fn add_shortcuts(&mut self, shortcuts: &Vec<(DirectedEdge, Vec<DirectedEdge>)>) {
         for (shortcut, _) in shortcuts {
-            self.graph.in_edges[shortcut.head as usize].push(shortcut.clone());
             self.graph.out_edges[shortcut.tail as usize].push(shortcut.clone());
+            self.graph.in_edges[shortcut.head as usize].push(shortcut.clone());
         }
     }
 
     pub fn removing_edges_violating_level_property(&mut self) {
-        self.graph.in_edges.iter_mut().for_each(|edges| {
-            edges.retain(|edge| self.levels[edge.head as usize] <= self.levels[edge.tail as usize]);
-        });
-
         self.graph.out_edges.iter_mut().for_each(|edges| {
             edges.retain(|edge| self.levels[edge.head as usize] >= self.levels[edge.tail as usize]);
+        });
+
+        self.graph.in_edges.iter_mut().for_each(|edges| {
+            edges.retain(|edge| self.levels[edge.head as usize] <= self.levels[edge.tail as usize]);
         });
     }
 }

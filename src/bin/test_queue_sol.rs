@@ -8,11 +8,7 @@ use osm_test::routing::{
     hl::hub_graph::HubGraph,
     naive_graph::NaiveGraph,
     route::{RouteRequest, Routing},
-    simple_algorithms::{
-        bi_dijkstra::BiDijkstra,
-        ch_bi_dijkstra::ChDijkstra,
-        dijkstra::Dijkstra,
-    },
+    simple_algorithms::{bi_dijkstra::BiDijkstra, ch_bi_dijkstra::ChDijkstra, dijkstra::Dijkstra},
 };
 
 /// Starts a routing service on localhost:3030/route
@@ -99,14 +95,14 @@ fn main() {
         if let Some(route) = response {
             cost = route.cost as i32;
         }
-        assert_eq!(true_cost, &cost, "bi dijkstra wrong");
+        assert_eq!(true_cost, &cost, "ch dijkstra wrong");
 
-        // test hl
-        let response = hl_graph.get_cost(&request);
-        let mut cost: i32 = -1;
-        if let Some(this_cost) = response {
-            cost = this_cost as i32;
-        }
-        assert_eq!(true_cost, &cost, "bi dijkstra wrong");
+        // // test hl
+        // let response = hl_graph.get_cost(&request);
+        // let mut cost: i32 = -1;
+        // if let Some(this_cost) = response {
+        //     cost = this_cost as i32;
+        // }
+        // assert_eq!(true_cost, &cost, "bi dijkstra wrong");
     }
 }

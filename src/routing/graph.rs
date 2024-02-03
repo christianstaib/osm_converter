@@ -12,7 +12,7 @@ pub struct DirectedEdge {
 }
 
 impl DirectedEdge {
-    pub fn new(head: VertexId, tail: VertexId, cost: u32) -> DirectedEdge {
+    pub fn new(tail: VertexId, head: VertexId, cost: u32) -> DirectedEdge {
         DirectedEdge { head, tail, cost }
     }
 
@@ -26,7 +26,7 @@ impl DirectedEdge {
 
     pub fn get_out_fast_edge(&self) -> FastOutEdge {
         FastOutEdge {
-            head: self.tail,
+            head: self.head,
             cost: self.cost,
         }
     }
