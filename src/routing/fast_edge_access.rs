@@ -6,7 +6,7 @@ use super::{
 #[derive(Clone)]
 pub struct FastOutEdgeAccess {
     pub edges: Vec<DirectedTaillessWeightedEdge>,
-    pub edges_start_at: Vec<u32>,
+    pub tail_start_at: Vec<u32>,
 }
 
 impl FastOutEdgeAccess {
@@ -22,13 +22,13 @@ impl FastOutEdgeAccess {
         });
         edges.sort_unstable_by_key(|edge| edge.tail);
 
-        let mut current = 0;
-        for (i, edge) in edges.iter().enumerate() {
-            if edge.tail != current {
-                for index in (current + 1)..=edge.tail {
-                    edges_start_at[index as usize] = i as u32;
+        let mut current_tail = 0;
+        for (edge_idx, edge) in edges.iter().enumerate() {
+            if edge.tail != current_tail {
+                for index in (current_tail + 1)..=edge.tail {
+                    edges_start_at[index as usize] = edge_idx as u32;
                 }
-                current = edge.tail;
+                current_tail = edge.tail;
             }
         }
         edges.pop();
@@ -36,13 +36,13 @@ impl FastOutEdgeAccess {
 
         FastOutEdgeAccess {
             edges,
-            edges_start_at,
+            tail_start_at: edges_start_at,
         }
     }
 
     pub fn edges(&self, source: VertexId) -> &[DirectedTaillessWeightedEdge] {
-        let start = self.edges_start_at[source as usize] as usize;
-        let end = self.edges_start_at[source as usize + 1] as usize;
+        let start = self.tail_start_at[source as usize] as usize;
+        let end = self.tail_start_at[source as usize + 1] as usize;
 
         &self.edges[start..end]
     }
@@ -51,7 +51,7 @@ impl FastOutEdgeAccess {
 #[derive(Clone)]
 pub struct FastInEdgeAccess {
     pub edges: Vec<DirectedHeadlessWeightedEdge>,
-    pub edges_start_at: Vec<u32>,
+    pub head_start_at: Vec<u32>,
 }
 
 impl FastInEdgeAccess {
@@ -67,13 +67,13 @@ impl FastInEdgeAccess {
         });
         edges.sort_unstable_by_key(|edge| edge.head);
 
-        let mut current = 0;
-        for (i, edge) in edges.iter().enumerate() {
-            if edge.head != current {
-                for index in (current + 1)..=edge.head {
-                    edges_start_at[index as usize] = i as u32;
+        let mut current_head = 0;
+        for (edge_idx, edge) in edges.iter().enumerate() {
+            if edge.head != current_head {
+                for index in (current_head + 1)..=edge.head {
+                    edges_start_at[index as usize] = edge_idx as u32;
                 }
-                current = edge.head;
+                current_head = edge.head;
             }
         }
         edges.pop();
@@ -81,13 +81,13 @@ impl FastInEdgeAccess {
 
         FastInEdgeAccess {
             edges,
-            edges_start_at,
+            head_start_at: edges_start_at,
         }
     }
 
     pub fn edges(&self, source: u32) -> &[DirectedHeadlessWeightedEdge] {
-        let start = self.edges_start_at[source as usize] as usize;
-        let end = self.edges_start_at[source as usize + 1] as usize;
+        let start = self.head_start_at[source as usize] as usize;
+        let end = self.head_start_at[source as usize + 1] as usize;
 
         &self.edges[start..end]
     }
