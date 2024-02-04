@@ -10,29 +10,18 @@ pub struct FastOutEdgeAccess {
 }
 
 impl FastOutEdgeAccess {
-    pub fn new(edges: &[DirectedWeightedEdge]) -> FastOutEdgeAccess {
-        let mut edges = edges.to_vec();
-        let mut edges_start_at: Vec<u32> = vec![0; edges.len() + 1];
+    pub fn new(edges: &[Vec<DirectedWeightedEdge>]) -> FastOutEdgeAccess {
+        let mut edges_start_at = vec![0];
 
-        // temporarrly adding a node in order to generate the list
-        edges.push(DirectedWeightedEdge {
-            tail: edges.len() as u32,
-            head: 0,
-            cost: 0,
-        });
-        edges.sort_unstable_by_key(|edge| edge.tail);
-
-        let mut current_tail = 0;
-        for (edge_idx, edge) in edges.iter().enumerate() {
-            if edge.tail != current_tail {
-                for index in (current_tail + 1)..=edge.tail {
-                    edges_start_at[index as usize] = edge_idx as u32;
-                }
-                current_tail = edge.tail;
-            }
+        for edges in edges.iter() {
+            edges_start_at.push(edges_start_at.last().unwrap() + edges.len() as u32);
         }
-        edges.pop();
-        let edges: Vec<_> = edges.iter().map(|edge| edge.get_out_fast_edge()).collect();
+
+        let edges: Vec<_> = edges
+            .iter()
+            .flatten()
+            .map(|edge| edge.get_out_fast_edge())
+            .collect();
 
         FastOutEdgeAccess {
             edges,
