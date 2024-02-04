@@ -17,7 +17,7 @@ impl FastOutEdgeAccess {
             edges_start_at.push(edges_start_at.last().unwrap() + edges.len() as u32);
         }
 
-        let edges: Vec<_> = edges
+        let edges = edges
             .iter()
             .flatten()
             .map(|edge| edge.get_out_fast_edge())
@@ -44,29 +44,18 @@ pub struct FastInEdgeAccess {
 }
 
 impl FastInEdgeAccess {
-    pub fn new(edges: &[DirectedWeightedEdge]) -> FastInEdgeAccess {
-        let mut edges: Vec<_> = edges.to_vec();
-        let mut edges_start_at: Vec<u32> = vec![0; edges.len() + 1];
+    pub fn new(edges: &[Vec<DirectedWeightedEdge>]) -> FastInEdgeAccess {
+        let mut edges_start_at = vec![0];
 
-        // temporarrly adding a node in order to generate the list
-        edges.push(DirectedWeightedEdge {
-            tail: 0,
-            head: edges.len() as u32,
-            cost: 0,
-        });
-        edges.sort_unstable_by_key(|edge| edge.head);
-
-        let mut current_head = 0;
-        for (edge_idx, edge) in edges.iter().enumerate() {
-            if edge.head != current_head {
-                for index in (current_head + 1)..=edge.head {
-                    edges_start_at[index as usize] = edge_idx as u32;
-                }
-                current_head = edge.head;
-            }
+        for edges in edges.iter() {
+            edges_start_at.push(edges_start_at.last().unwrap() + edges.len() as u32);
         }
-        edges.pop();
-        let edges: Vec<_> = edges.iter().map(|edge| edge.get_in_fast_edge()).collect();
+
+        let edges = edges
+            .iter()
+            .flatten()
+            .map(|edge| edge.get_in_fast_edge())
+            .collect();
 
         FastInEdgeAccess {
             edges,
