@@ -73,7 +73,7 @@ impl<'a> BiDijkstra<'a> {
                     .in_edges(backward_state.value)
                     .iter()
                     .for_each(|edge| {
-                        backward_data.update(backward_state.value, edge.head, edge.cost);
+                        backward_data.update(backward_state.value, edge.tail, edge.cost);
                     });
             }
 

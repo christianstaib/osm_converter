@@ -37,7 +37,7 @@ impl DirectedWeightedEdge {
 
     pub fn get_in_fast_edge(&self) -> DirectedHeadlessWeightedEdge {
         DirectedHeadlessWeightedEdge {
-            head: self.head,
+            tail: self.tail,
             cost: self.cost,
         }
     }

@@ -14,7 +14,7 @@ pub struct DirectedTaillessWeightedEdge {
 
 #[derive(Clone, Debug)]
 pub struct DirectedHeadlessWeightedEdge {
-    pub head: VertexId,
+    pub tail: VertexId,
     pub cost: u32,
 }
 
