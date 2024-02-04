@@ -7,13 +7,13 @@ use super::{
 };
 
 #[derive(Clone, Debug)]
-pub struct FastOutEdge {
+pub struct DirectedTaillessWeightedEdge {
     pub head: VertexId,
     pub cost: u32,
 }
 
 #[derive(Clone, Debug)]
-pub struct FastInEdge {
+pub struct DirectedHeadlessWeightedEdge {
     pub head: VertexId,
     pub cost: u32,
 }
@@ -43,11 +43,11 @@ impl FastGraph {
             in_edges,
         }
     }
-    pub fn out_edges(&self, source: u32) -> &[FastOutEdge] {
+    pub fn out_edges(&self, source: u32) -> &[DirectedTaillessWeightedEdge] {
         self.out_edges.edges(source)
     }
 
-    pub fn in_edges(&self, target: u32) -> &[FastInEdge] {
+    pub fn in_edges(&self, target: u32) -> &[DirectedHeadlessWeightedEdge] {
         self.in_edges.edges(target)
     }
 

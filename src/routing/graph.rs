@@ -3,7 +3,7 @@ use std::{collections::HashSet, usize};
 use serde_derive::{Deserialize, Serialize};
 
 use super::{
-    fast_graph::{FastInEdge, FastOutEdge},
+    fast_graph::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge},
     naive_graph::NaiveGraph,
     types::VertexId,
 };
@@ -28,15 +28,15 @@ impl DirectedWeightedEdge {
         }
     }
 
-    pub fn get_out_fast_edge(&self) -> FastOutEdge {
-        FastOutEdge {
+    pub fn get_out_fast_edge(&self) -> DirectedTaillessWeightedEdge {
+        DirectedTaillessWeightedEdge {
             head: self.head,
             cost: self.cost,
         }
     }
 
-    pub fn get_in_fast_edge(&self) -> FastInEdge {
-        FastInEdge {
+    pub fn get_in_fast_edge(&self) -> DirectedHeadlessWeightedEdge {
+        DirectedHeadlessWeightedEdge {
             head: self.head,
             cost: self.cost,
         }

@@ -1,12 +1,12 @@
 use super::{
-    fast_graph::{FastInEdge, FastOutEdge},
+    fast_graph::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge},
     graph::DirectedWeightedEdge,
     types::VertexId,
 };
 
 #[derive(Clone)]
 pub struct FastOutEdgeAccess {
-    pub edges: Vec<FastOutEdge>,
+    pub edges: Vec<DirectedTaillessWeightedEdge>,
     pub edges_start_at: Vec<u32>,
 }
 
@@ -43,7 +43,7 @@ impl FastOutEdgeAccess {
         }
     }
 
-    pub fn edges(&self, source: VertexId) -> &[FastOutEdge] {
+    pub fn edges(&self, source: VertexId) -> &[DirectedTaillessWeightedEdge] {
         let start = self.edges_start_at[source as usize] as usize;
         let end = self.edges_start_at[source as usize + 1] as usize;
 
@@ -53,7 +53,7 @@ impl FastOutEdgeAccess {
 
 #[derive(Clone)]
 pub struct FastInEdgeAccess {
-    pub edges: Vec<FastInEdge>,
+    pub edges: Vec<DirectedHeadlessWeightedEdge>,
     pub edges_start_at: Vec<u32>,
 }
 
@@ -90,7 +90,7 @@ impl FastInEdgeAccess {
         }
     }
 
-    pub fn edges(&self, source: u32) -> &[FastInEdge] {
+    pub fn edges(&self, source: u32) -> &[DirectedHeadlessWeightedEdge] {
         let start = self.edges_start_at[source as usize] as usize;
         let end = self.edges_start_at[source as usize + 1] as usize;
 
