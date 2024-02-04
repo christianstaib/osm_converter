@@ -13,7 +13,6 @@ pub struct FastOutEdgeAccess {
 impl FastOutEdgeAccess {
     pub fn new(edges: &[DirectedWeightedEdge]) -> FastOutEdgeAccess {
         let mut edges = edges.to_vec();
-
         let mut edges_start_at: Vec<u32> = vec![0; edges.len() + 1];
 
         // temporarrly adding a node in order to generate the list
@@ -35,7 +34,6 @@ impl FastOutEdgeAccess {
         }
         edges.pop();
         let edges: Vec<_> = edges.iter().map(|edge| edge.get_out_fast_edge()).collect();
-        let edges_start_at = edges_start_at.clone();
 
         FastOutEdgeAccess {
             edges,
@@ -60,7 +58,6 @@ pub struct FastInEdgeAccess {
 impl FastInEdgeAccess {
     pub fn new(edges: &[DirectedWeightedEdge]) -> FastInEdgeAccess {
         let mut edges: Vec<_> = edges.to_vec();
-
         let mut edges_start_at: Vec<u32> = vec![0; edges.len() + 1];
 
         // temporarrly adding a node in order to generate the list
@@ -82,7 +79,6 @@ impl FastInEdgeAccess {
         }
         edges.pop();
         let edges: Vec<_> = edges.iter().map(|edge| edge.get_in_fast_edge()).collect();
-        let edges_start_at = edges_start_at.clone();
 
         FastInEdgeAccess {
             edges,
