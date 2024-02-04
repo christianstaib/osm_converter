@@ -3,7 +3,7 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
 use crate::routing::{
-    graph::{DirectedEdge, Graph},
+    graph::{DirectedWeightedEdge, Graph},
     types::VertexId,
 };
 
@@ -120,7 +120,7 @@ impl Contractor {
 
     fn add_shortcuts(&mut self, shortcuts: &Vec<((VertexId, VertexId), VertexId, u32)>) {
         shortcuts.iter().for_each(|(tail_head, _, cost)| {
-            let edge = DirectedEdge {
+            let edge = DirectedWeightedEdge {
                 head: tail_head.1,
                 tail: tail_head.0,
                 cost: *cost,

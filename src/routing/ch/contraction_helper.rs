@@ -3,7 +3,7 @@ use std::collections::{BinaryHeap, HashMap};
 use rayon::iter::{ParallelBridge, ParallelIterator};
 
 use crate::routing::{
-    graph::{DirectedEdge, Graph},
+    graph::{DirectedWeightedEdge, Graph},
     types::VertexId,
 };
 
@@ -48,7 +48,7 @@ impl<'a> ContractionHelper<'a> {
                     let w = vw_ede.head;
                     let uw_cost = uv_edge.cost + vw_ede.cost;
                     if &uw_cost < witness_cost.get(&w).unwrap_or(&u32::MAX) {
-                        let shortcut = DirectedEdge {
+                        let shortcut = DirectedWeightedEdge {
                             tail: u,
                             head: w,
                             cost: uw_cost,

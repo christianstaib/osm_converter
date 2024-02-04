@@ -1,6 +1,6 @@
 use super::{
     fast_graph::{FastInEdge, FastOutEdge},
-    graph::DirectedEdge,
+    graph::DirectedWeightedEdge,
     types::VertexId,
 };
 
@@ -11,13 +11,13 @@ pub struct FastOutEdgeAccess {
 }
 
 impl FastOutEdgeAccess {
-    pub fn new(edges: &[DirectedEdge]) -> FastOutEdgeAccess {
+    pub fn new(edges: &[DirectedWeightedEdge]) -> FastOutEdgeAccess {
         let mut edges = edges.to_vec();
 
         let mut edges_start_at: Vec<u32> = vec![0; edges.len() + 1];
 
         // temporarrly adding a node in order to generate the list
-        edges.push(DirectedEdge {
+        edges.push(DirectedWeightedEdge {
             tail: edges.len() as u32,
             head: 0,
             cost: 0,
@@ -58,13 +58,13 @@ pub struct FastInEdgeAccess {
 }
 
 impl FastInEdgeAccess {
-    pub fn new(edges: &[DirectedEdge]) -> FastInEdgeAccess {
+    pub fn new(edges: &[DirectedWeightedEdge]) -> FastInEdgeAccess {
         let mut edges: Vec<_> = edges.iter().map(|edge| edge.inverted()).collect();
 
         let mut edges_start_at: Vec<u32> = vec![0; edges.len() + 1];
 
         // temporarrly adding a node in order to generate the list
-        edges.push(DirectedEdge {
+        edges.push(DirectedWeightedEdge {
             tail: edges.len() as u32,
             head: 0,
             cost: 0,

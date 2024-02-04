@@ -9,19 +9,19 @@ use super::{
 };
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord, Debug)]
-pub struct DirectedEdge {
+pub struct DirectedWeightedEdge {
     pub head: VertexId,
     pub tail: VertexId,
     pub cost: u32,
 }
 
-impl DirectedEdge {
-    pub fn new(tail: VertexId, head: VertexId, cost: u32) -> DirectedEdge {
-        DirectedEdge { head, tail, cost }
+impl DirectedWeightedEdge {
+    pub fn new(tail: VertexId, head: VertexId, cost: u32) -> DirectedWeightedEdge {
+        DirectedWeightedEdge { head, tail, cost }
     }
 
-    pub fn inverted(&self) -> DirectedEdge {
-        DirectedEdge {
+    pub fn inverted(&self) -> DirectedWeightedEdge {
+        DirectedWeightedEdge {
             head: self.tail,
             tail: self.head,
             cost: self.cost,
@@ -54,8 +54,8 @@ impl DirectedEdge {
 ///
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Graph {
-    pub in_edges: Vec<Vec<DirectedEdge>>,
-    pub out_edges: Vec<Vec<DirectedEdge>>,
+    pub in_edges: Vec<Vec<DirectedWeightedEdge>>,
+    pub out_edges: Vec<Vec<DirectedWeightedEdge>>,
 }
 
 impl Default for Graph {
@@ -137,7 +137,7 @@ impl Graph {
     }
 
     /// Adds an edge to the graph.
-    pub fn add_edge(&mut self, edge: &DirectedEdge) {
+    pub fn add_edge(&mut self, edge: &DirectedWeightedEdge) {
         if (self.out_edges.len() as u32) <= edge.tail {
             self.out_edges.resize((edge.tail + 1) as usize, Vec::new());
         }
@@ -150,7 +150,7 @@ impl Graph {
     }
 
     /// Removes an edge from the graph.
-    pub fn remove_edge(&mut self, edge: &DirectedEdge) {
+    pub fn remove_edge(&mut self, edge: &DirectedWeightedEdge) {
         if let Some(out_edges) = self.out_edges.get_mut(edge.tail as usize) {
             out_edges.retain(|out_edge| out_edge != edge);
         }
