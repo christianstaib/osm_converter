@@ -7,8 +7,7 @@ use std::{
 use clap::Parser;
 use indicatif::ProgressIterator;
 use osm_test::routing::{
-    fast_graph::FastGraph, hl::hub_graph::HubGraph, naive_graph::NaiveGraph,
-    route::RouteValidationRequest,
+    graph::Graph, hl::hub_graph::HubGraph, naive_graph::NaiveGraph, route::RouteValidationRequest,
 };
 
 /// Starts a routing service on localhost:3030/route
@@ -30,7 +29,7 @@ fn main() {
     let args = Args::parse();
 
     let graph = NaiveGraph::from_file(args.fmi_path.as_str());
-    let graph = FastGraph::from_naive_graph(&graph);
+    let graph = Graph::from_naive_graph(&graph);
 
     let reader = BufReader::new(File::open(args.test_path.as_str()).unwrap());
     let tests: Vec<RouteValidationRequest> = serde_json::from_reader(reader).unwrap();

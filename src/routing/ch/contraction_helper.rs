@@ -45,11 +45,6 @@ impl<'a> ContractionHelper<'a> {
                     let w = vw_ede.head;
                     let uw_cost = uv_edge.cost + vw_ede.cost;
                     if &uw_cost < witness_cost.get(&w).unwrap_or(&u32::MAX) {
-                        let shortcut = DirectedWeightedEdge {
-                            tail: u,
-                            head: w,
-                            cost: uw_cost,
-                        };
                         let edge = (u, w);
                         shortcuts.push((edge, v, uw_cost));
                     }

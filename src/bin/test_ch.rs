@@ -7,8 +7,7 @@ use std::{
 use clap::Parser;
 use indicatif::ProgressIterator;
 use osm_test::routing::{
-    ch::contractor::ContractedGraph,
-    route::{RouteRequest, RouteValidationRequest},
+    ch::contractor::ContractedGraph, route::RouteValidationRequest,
     simple_algorithms::ch_bi_dijkstra::ChDijkstra,
 };
 

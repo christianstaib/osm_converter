@@ -1,11 +1,8 @@
-use serde_derive::{Deserialize, Serialize};
-
 use super::{
     edge::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge},
     fast_edge_access::{FastInEdgeAccess, FastOutEdgeAccess},
     graph::Graph,
     naive_graph::NaiveGraph,
-    route::{Route, RouteRequest},
     types::VertexId,
 };
 
