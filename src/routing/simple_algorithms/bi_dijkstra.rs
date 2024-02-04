@@ -54,7 +54,9 @@ impl<'a> BiDijkstra<'a> {
                 self.graph
                     .out_edges(forward_state.value)
                     .iter()
-                    .for_each(|edge| forward_data.update(forward_state.value, edge));
+                    .for_each(|edge| {
+                        forward_data.update(forward_state.value, edge.head, edge.cost)
+                    });
             }
 
             let backward_state = backward_data.pop();
@@ -71,7 +73,7 @@ impl<'a> BiDijkstra<'a> {
                     .in_edges(backward_state.value)
                     .iter()
                     .for_each(|edge| {
-                        backward_data.update(backward_state.value, edge);
+                        backward_data.update(backward_state.value, edge.head, edge.cost);
                     });
             }
 

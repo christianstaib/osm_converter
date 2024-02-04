@@ -2,7 +2,11 @@ use std::{collections::HashSet, usize};
 
 use serde_derive::{Deserialize, Serialize};
 
-use super::{fast_graph::FastOutEdge, naive_graph::NaiveGraph, types::VertexId};
+use super::{
+    fast_graph::{FastInEdge, FastOutEdge},
+    naive_graph::NaiveGraph,
+    types::VertexId,
+};
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord, Debug)]
 pub struct DirectedEdge {
@@ -26,6 +30,13 @@ impl DirectedEdge {
 
     pub fn get_out_fast_edge(&self) -> FastOutEdge {
         FastOutEdge {
+            head: self.head,
+            cost: self.cost,
+        }
+    }
+
+    pub fn get_in_fast_edge(&self) -> FastInEdge {
+        FastInEdge {
             head: self.head,
             cost: self.cost,
         }

@@ -12,6 +12,12 @@ pub struct FastOutEdge {
     pub cost: u32,
 }
 
+#[derive(Clone, Debug)]
+pub struct FastInEdge {
+    pub head: VertexId,
+    pub cost: u32,
+}
+
 #[derive(Clone)]
 /// Gives fast access to predecessor and successor in a graph.
 /// As FastGraph uses FastEdgeAccess, an out_edges head is acutally its tail.
@@ -41,7 +47,7 @@ impl FastGraph {
         self.out_edges.edges(source)
     }
 
-    pub fn in_edges(&self, target: u32) -> &[FastOutEdge] {
+    pub fn in_edges(&self, target: u32) -> &[FastInEdge] {
         self.in_edges.edges(target)
     }
 

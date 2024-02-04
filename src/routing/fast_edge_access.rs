@@ -1,4 +1,8 @@
-use super::{fast_graph::FastOutEdge, graph::DirectedEdge, types::VertexId};
+use super::{
+    fast_graph::{FastInEdge, FastOutEdge},
+    graph::DirectedEdge,
+    types::VertexId,
+};
 
 #[derive(Clone)]
 pub struct FastOutEdgeAccess {
@@ -49,7 +53,7 @@ impl FastOutEdgeAccess {
 
 #[derive(Clone)]
 pub struct FastInEdgeAccess {
-    pub edges: Vec<FastOutEdge>,
+    pub edges: Vec<FastInEdge>,
     pub edges_start_at: Vec<u32>,
 }
 
@@ -77,7 +81,7 @@ impl FastInEdgeAccess {
             }
         }
         edges.pop();
-        let edges: Vec<_> = edges.iter().map(|edge| edge.get_out_fast_edge()).collect();
+        let edges: Vec<_> = edges.iter().map(|edge| edge.get_in_fast_edge()).collect();
         let edges_start_at = edges_start_at.clone();
 
         FastInEdgeAccess {
@@ -86,7 +90,7 @@ impl FastInEdgeAccess {
         }
     }
 
-    pub fn edges(&self, source: u32) -> &[FastOutEdge] {
+    pub fn edges(&self, source: u32) -> &[FastInEdge] {
         let start = self.edges_start_at[source as usize] as usize;
         let end = self.edges_start_at[source as usize + 1] as usize;
 
