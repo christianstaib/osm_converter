@@ -65,8 +65,9 @@ impl DijkstraData {
             let mut current = target;
             while self.nodes[current as usize].predecessor != u32::MAX {
                 current = self.nodes[current as usize].predecessor;
-                route.insert(0, current);
+                route.push(current);
             }
+            route.reverse();
             return Some(Route {
                 cost: self.nodes[target as usize].cost,
                 nodes: route,

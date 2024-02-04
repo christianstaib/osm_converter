@@ -7,6 +7,7 @@ use rayon::{
 use serde_derive::{Deserialize, Serialize};
 
 use crate::routing::{
+    edge::DirectedEdge,
     route::{Route, RouteRequest},
     simple_algorithms::ch_bi_dijkstra::ChDijkstra,
 };
@@ -17,7 +18,7 @@ use super::label::Label;
 pub struct HubGraph {
     pub forward_labels: Vec<Label>,
     pub backward_labels: Vec<Label>,
-    pub shortcuts: HashMap<(u32, u32), u32>,
+    pub shortcuts: HashMap<DirectedEdge, u32>,
 }
 
 impl HubGraph {
@@ -108,11 +109,14 @@ impl HubGraph {
         while route_with_shortcuts.len() >= 2 {
             let last_num = route_with_shortcuts.pop().unwrap();
             let second_last_num = *route_with_shortcuts.last().unwrap();
-            let last = (second_last_num, last_num);
+            let last = DirectedEdge {
+                tail: second_last_num,
+                head: last_num,
+            };
             if let Some(&middle_node) = self.shortcuts.get(&last) {
-                route_with_shortcuts.extend([middle_node, last.1]);
+                route_with_shortcuts.extend([middle_node, last.head]);
             } else {
-                route.push(last.1);
+                route.push(last.head);
             }
         }
 

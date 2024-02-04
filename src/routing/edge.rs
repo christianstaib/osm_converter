@@ -22,6 +22,13 @@ impl DirectedWeightedEdge {
         }
     }
 
+    pub fn unweighted(&self) -> DirectedEdge {
+        DirectedEdge {
+            tail: self.tail,
+            head: self.head,
+        }
+    }
+
     pub fn get_out_fast_edge(&self) -> DirectedTaillessWeightedEdge {
         DirectedTaillessWeightedEdge {
             head: self.head,
@@ -49,7 +56,7 @@ pub struct DirectedHeadlessWeightedEdge {
     pub cost: u32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub struct DirectedEdge {
     pub tail: VertexId,
     pub head: VertexId,

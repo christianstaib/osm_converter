@@ -26,7 +26,7 @@ impl<'a> ContractionHelper<'a> {
         &self,
         v: u32,
         max_hops_in_witness_search: u32,
-    ) -> Vec<((VertexId, VertexId), VertexId, u32)> {
+    ) -> Vec<(DirectedWeightedEdge, VertexId)> {
         let uv_edges = &self.graph.in_edges[v as usize];
         let vw_edges = &self.graph.out_edges[v as usize];
         let max_vw_cost = vw_edges.iter().map(|edge| edge.cost).max().unwrap_or(0);
@@ -45,8 +45,12 @@ impl<'a> ContractionHelper<'a> {
                     let w = vw_ede.head;
                     let uw_cost = uv_edge.cost + vw_ede.cost;
                     if &uw_cost < witness_cost.get(&w).unwrap_or(&u32::MAX) {
-                        let edge = (u, w);
-                        shortcuts.push((edge, v, uw_cost));
+                        let edge = DirectedWeightedEdge {
+                            tail: u,
+                            head: w,
+                            cost: uw_cost,
+                        };
+                        shortcuts.push((edge, v));
                     }
                 }
                 shortcuts

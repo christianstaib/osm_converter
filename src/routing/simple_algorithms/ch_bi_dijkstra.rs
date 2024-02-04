@@ -4,6 +4,7 @@ use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 
 use crate::routing::{
     ch::contractor::ContractedGraph,
+    edge::DirectedEdge,
     fast_graph::FastGraph,
     queue::heap_queue::State,
     route::{Route, RouteRequest},
@@ -12,7 +13,7 @@ use crate::routing::{
 #[derive(Clone)]
 pub struct ChDijkstra {
     pub graph: FastGraph,
-    pub shortcuts: HashMap<(u32, u32), u32>,
+    pub shortcuts: HashMap<DirectedEdge, u32>,
 }
 
 impl ChDijkstra {

@@ -2,14 +2,18 @@ use indicatif::ProgressBar;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
-use crate::routing::{edge::DirectedWeightedEdge, graph::Graph, types::VertexId};
+use crate::routing::{
+    edge::{DirectedEdge, DirectedWeightedEdge},
+    graph::Graph,
+    types::VertexId,
+};
 
 use super::{ch_queue::queue::CHQueue, contraction_helper::ContractionHelper};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ContractedGraph {
     pub graph: Graph,
-    pub shortcuts_map: Vec<((VertexId, VertexId), VertexId)>,
+    pub shortcuts_map: Vec<(DirectedEdge, VertexId)>,
 }
 
 pub struct Contractor {
@@ -40,7 +44,7 @@ impl Contractor {
         let out_edges = self.graph.out_edges.clone();
         let in_edges = self.graph.in_edges.clone();
 
-        let shortcuts = self.contract_single_nodes();
+        let shortcuts = self.contract_node_sets();
 
         self.graph.out_edges = out_edges;
         self.graph.in_edges = in_edges;
@@ -49,7 +53,7 @@ impl Contractor {
 
         let shortcuts = shortcuts
             .iter()
-            .map(|(tail_head, middle, _)| (*tail_head, *middle))
+            .map(|(shortcut, middle)| (shortcut.unweighted(), *middle))
             .collect();
 
         ContractedGraph {
@@ -59,7 +63,7 @@ impl Contractor {
     }
 
     /// Generates contraction hierarchy where one node at a time is contracted.
-    pub fn contract_single_nodes(&mut self) -> Vec<((VertexId, VertexId), VertexId, u32)> {
+    pub fn contract_single_nodes(&mut self) -> Vec<(DirectedWeightedEdge, VertexId)> {
         let mut shortcuts = Vec::new();
 
         let bar = ProgressBar::new(self.graph.in_edges.len() as u64);
@@ -85,7 +89,7 @@ impl Contractor {
 
     /// Generates contraction hierarchy where nodes from independent node sets are contracted
     /// simultainously.
-    pub fn contract_node_sets(&mut self) -> Vec<((VertexId, VertexId), VertexId, u32)> {
+    pub fn contract_node_sets(&mut self) -> Vec<(DirectedWeightedEdge, VertexId)> {
         let mut shortcuts = Vec::new();
 
         let bar = ProgressBar::new(self.graph.in_edges.len() as u64);
@@ -115,15 +119,10 @@ impl Contractor {
         shortcuts
     }
 
-    fn add_shortcuts(&mut self, shortcuts: &Vec<((VertexId, VertexId), VertexId, u32)>) {
-        shortcuts.iter().for_each(|(tail_head, _, cost)| {
-            let edge = DirectedWeightedEdge {
-                head: tail_head.1,
-                tail: tail_head.0,
-                cost: *cost,
-            };
-            self.graph.add_edge(&edge)
-        });
+    fn add_shortcuts(&mut self, shortcuts: &Vec<(DirectedWeightedEdge, VertexId)>) {
+        shortcuts
+            .iter()
+            .for_each(|(edge, _)| self.graph.add_edge(&edge));
     }
 
     fn removing_edges_violating_level_property(&mut self) {
