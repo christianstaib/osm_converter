@@ -2,7 +2,12 @@ use std::{collections::HashSet, usize};
 
 use serde_derive::{Deserialize, Serialize};
 
-use super::{edge::DirectedWeightedEdge, naive_graph::NaiveGraph, types::VertexId};
+use super::{
+    edge::DirectedWeightedEdge,
+    naive_graph::NaiveGraph,
+    route::{Route, RouteRequest},
+    types::VertexId,
+};
 
 /// Represents a directed graph where each node's incoming and outgoing edges are easily accessible.
 ///
@@ -105,5 +110,31 @@ impl Graph {
         in_edges.iter().for_each(|in_edge| {
             self.out_edges[in_edge.tail as usize].retain(|out_edge| out_edge != in_edge);
         });
+    }
+
+    /// Check if a route is correct for a given request. Panics if not.
+    pub fn validate_route(&self, request: &RouteRequest, route: &Route) {
+        // check if route start and end is correct
+        assert_eq!(route.nodes.first().unwrap(), &request.source);
+        assert_eq!(route.nodes.last().unwrap(), &request.target);
+
+        // check if there is an edge between consecutive route nodes
+        let mut edges = Vec::new();
+        for node_pair in route.nodes.windows(2) {
+            if let [from, to] = node_pair {
+                let min_edge = self.out_edges[*from as usize]
+                    .iter()
+                    .filter(|edge| edge.head == *to)
+                    .min_by_key(|edge| edge.cost)
+                    .expect(format!("no edge between {} and {} found", from, to).as_str());
+                edges.push(min_edge);
+            } else {
+                panic!("Can't unpack node_pair: {:?}", node_pair);
+            }
+        }
+
+        // check if cost of route is correct
+        let true_cost = edges.iter().map(|edge| edge.cost).sum::<u32>();
+        assert_eq!(route.cost, true_cost);
     }
 }
