@@ -1,3 +1,5 @@
+use serde_derive::{Deserialize, Serialize};
+
 use super::{
     fast_edge_access::{FastInEdgeAccess, FastOutEdgeAccess},
     graph::Graph,
@@ -6,7 +8,7 @@ use super::{
     types::VertexId,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DirectedTaillessWeightedEdge {
     pub head: VertexId,
     pub cost: u32,
