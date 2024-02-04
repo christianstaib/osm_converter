@@ -54,8 +54,8 @@ impl DirectedWeightedEdge {
 ///
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Graph {
-    pub in_edges: Vec<Vec<DirectedWeightedEdge>>,
     pub out_edges: Vec<Vec<DirectedWeightedEdge>>,
+    pub in_edges: Vec<Vec<DirectedWeightedEdge>>,
 }
 
 impl Default for Graph {
@@ -67,8 +67,8 @@ impl Default for Graph {
 impl Graph {
     fn new() -> Self {
         Graph {
-            in_edges: Vec::new(),
             out_edges: Vec::new(),
+            in_edges: Vec::new(),
         }
     }
 
@@ -79,33 +79,6 @@ impl Graph {
         });
 
         graph
-    }
-
-    pub fn validate(&self) {
-        // assert all edges are sorted in corretly
-        for (tail, out_edges) in self.out_edges.iter().enumerate() {
-            let tail = tail as u32;
-            for out_edge in out_edges.iter() {
-                assert_eq!(tail, out_edge.tail);
-            }
-        }
-        for (head, in_edges) in self.in_edges.iter().enumerate() {
-            let head = head as u32;
-            for in_edge in in_edges.iter() {
-                assert_eq!(head, in_edge.head);
-            }
-        }
-
-        // assert in_edges and out_edges contain the same edges
-        let mut out_edges: Vec<_> = self.out_edges.iter().flatten().cloned().collect();
-        out_edges.sort();
-        let mut in_edges: Vec<_> = self.in_edges.iter().flatten().cloned().collect();
-        in_edges.sort();
-
-        assert_eq!(out_edges.len(), in_edges.len());
-        for i in 0..out_edges.len() {
-            assert_eq!(out_edges[i], in_edges[i]);
-        }
     }
 
     /// Retrieves the set of vertices reachable from and leading to `vertex` within a specified number of `hops`.
