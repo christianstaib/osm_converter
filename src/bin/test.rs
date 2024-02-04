@@ -39,8 +39,8 @@ pub struct ContractedGraph {
 fn main() {
     let args = Args::parse();
 
-    let naive_graph = NaiveGraph::from_file(args.fmi_path.as_str());
-    let _graph = Graph::from_naive_graph(&naive_graph);
+    let graph = NaiveGraph::from_file(args.fmi_path.as_str());
+    // let _graph = Graph::from_naive_graph(&naive_graph);
 
     // let reader = BufReader::new(File::open("graph.json").unwrap());
     // let contraced_graph: ContractedGraph = serde_json::from_reader(reader).unwrap();
@@ -54,7 +54,8 @@ fn main() {
     // let contracted_graph = NaiveGraph { nodes, edges };
     // let contracted_graph = FastGraph::new(&contracted_graph);
 
-    let graph = FastGraph::from_naive_graph(&naive_graph);
+    let graph = Graph::from_naive_graph(&graph);
+    let graph = FastGraph::from_graph(&graph);
 
     let algorithms: Vec<(&str, Box<dyn Routing>)> = vec![
         // (

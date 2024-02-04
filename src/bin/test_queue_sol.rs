@@ -5,6 +5,7 @@ use indicatif::ProgressIterator;
 use osm_test::routing::{
     ch::contractor::ContractedGraph,
     fast_graph::FastGraph,
+    graph::Graph,
     hl::hub_graph::HubGraph,
     naive_graph::NaiveGraph,
     route::{RouteRequest, Routing},
@@ -36,7 +37,8 @@ fn main() {
     let args = Args::parse();
 
     let graph = NaiveGraph::from_file(args.fmi_path.as_str());
-    let graph = FastGraph::from_naive_graph(&graph);
+    let graph = Graph::from_naive_graph(&graph);
+    let graph = FastGraph::from_graph(&graph);
 
     let dijkstra = Dijkstra::new(&graph);
 

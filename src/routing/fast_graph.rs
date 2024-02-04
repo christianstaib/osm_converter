@@ -38,15 +38,4 @@ impl FastGraph {
     pub fn in_edges(&self, target: VertexId) -> &[DirectedHeadlessWeightedEdge] {
         self.in_edges.edges(target)
     }
-
-    pub fn from_naive_graph(graph: &NaiveGraph) -> FastGraph {
-        let out_edges = FastOutEdgeAccess::new(&graph.edges);
-        let in_edges = FastInEdgeAccess::new(&graph.edges);
-
-        FastGraph {
-            num_nodes: graph.nodes.len() as u32,
-            out_edges,
-            in_edges,
-        }
-    }
 }
