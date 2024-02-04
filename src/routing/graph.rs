@@ -2,46 +2,7 @@ use std::{collections::HashSet, usize};
 
 use serde_derive::{Deserialize, Serialize};
 
-use super::{
-    fast_graph::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge},
-    naive_graph::NaiveGraph,
-    types::VertexId,
-};
-
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Ord, Debug)]
-pub struct DirectedWeightedEdge {
-    pub head: VertexId,
-    pub tail: VertexId,
-    pub cost: u32,
-}
-
-impl DirectedWeightedEdge {
-    pub fn new(tail: VertexId, head: VertexId, cost: u32) -> DirectedWeightedEdge {
-        DirectedWeightedEdge { head, tail, cost }
-    }
-
-    pub fn inverted(&self) -> DirectedWeightedEdge {
-        DirectedWeightedEdge {
-            head: self.tail,
-            tail: self.head,
-            cost: self.cost,
-        }
-    }
-
-    pub fn get_out_fast_edge(&self) -> DirectedTaillessWeightedEdge {
-        DirectedTaillessWeightedEdge {
-            head: self.head,
-            cost: self.cost,
-        }
-    }
-
-    pub fn get_in_fast_edge(&self) -> DirectedHeadlessWeightedEdge {
-        DirectedHeadlessWeightedEdge {
-            tail: self.tail,
-            cost: self.cost,
-        }
-    }
-}
+use super::{edge::DirectedWeightedEdge, naive_graph::NaiveGraph, types::VertexId};
 
 /// Represents a directed graph where each node's incoming and outgoing edges are easily accessible.
 ///

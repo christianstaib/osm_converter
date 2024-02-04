@@ -1,6 +1,5 @@
 use super::{
-    fast_graph::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge},
-    graph::DirectedWeightedEdge,
+    edge::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge, DirectedWeightedEdge},
     types::VertexId,
 };
 

@@ -2,10 +2,7 @@ use indicatif::ProgressBar;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
-use crate::routing::{
-    graph::{DirectedWeightedEdge, Graph},
-    types::VertexId,
-};
+use crate::routing::{edge::DirectedWeightedEdge, graph::Graph, types::VertexId};
 
 use super::{ch_queue::queue::CHQueue, contraction_helper::ContractionHelper};
 

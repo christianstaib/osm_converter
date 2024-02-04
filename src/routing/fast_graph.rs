@@ -1,24 +1,13 @@
 use serde_derive::{Deserialize, Serialize};
 
 use super::{
+    edge::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge},
     fast_edge_access::{FastInEdgeAccess, FastOutEdgeAccess},
     graph::Graph,
     naive_graph::NaiveGraph,
     route::{Route, RouteRequest},
     types::VertexId,
 };
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct DirectedTaillessWeightedEdge {
-    pub head: VertexId,
-    pub cost: u32,
-}
-
-#[derive(Clone, Debug)]
-pub struct DirectedHeadlessWeightedEdge {
-    pub tail: VertexId,
-    pub cost: u32,
-}
 
 #[derive(Clone)]
 /// Gives fast access to predecessor and successor in a graph.

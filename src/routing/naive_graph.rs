@@ -5,7 +5,7 @@ use std::{
 
 use crate::sphere::geometry::point::Point;
 
-use super::graph::DirectedWeightedEdge;
+use super::edge::DirectedWeightedEdge;
 
 #[derive(Clone)]
 pub struct NaiveGraph {

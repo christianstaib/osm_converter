@@ -1,7 +1,6 @@
 use std::usize;
 
 use super::{
-    fast_graph::DirectedTaillessWeightedEdge,
     queue::heap_queue::{HeapQueue, State},
     route::Route,
     types::VertexId,
