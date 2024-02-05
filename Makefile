@@ -74,10 +74,10 @@ create_ch:
 
 
 test_ch_stgt:
-	cargo run --bin test_ch --release -- --contracted-graph $(STGT_CONTRACTED) --test-path $(STGT_TESTS_JSON)
+	cargo run --bin test_ch --release -- --contracted-graph $(STGT_CONTRACTED)
 
 test_ch:
-	cargo run --bin test_ch --release -- --contracted-graph $(NETWORK_CONTRACTED) --test-path $(NETWORK_TESTS)
+	cargo run --bin test_ch --release -- --contracted-graph $(NETWORK_CONTRACTED)
 
 
 create_hl_stgt:

@@ -20,9 +20,6 @@ struct Args {
     /// Path of contracted_graph (output)
     #[arg(short, long)]
     contracted_graph: String,
-    /// Path of .fmi file
-    #[arg(short, long)]
-    test_path: String,
 }
 
 fn main() {
