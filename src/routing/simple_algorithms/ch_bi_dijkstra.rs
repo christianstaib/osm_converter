@@ -6,21 +6,84 @@ use crate::routing::{
     ch::contractor::ContractedGraph,
     edge::DirectedEdge,
     fast_graph::FastGraph,
+    hl::{hub_graph::HubGraph, label::Label, label_entry::LabelEntry},
     path::{Path, PathRequest},
     queue::heap_queue::State,
+    types::VertexId,
 };
 
 #[derive(Clone)]
 pub struct ChDijkstra {
     pub graph: FastGraph,
     pub shortcuts: HashMap<DirectedEdge, u32>,
+    pub levels: Vec<Vec<VertexId>>,
 }
 
 impl ChDijkstra {
     pub fn new(contracted_grap: &ContractedGraph) -> ChDijkstra {
         let shortcuts = contracted_grap.shortcuts_map.iter().cloned().collect();
         let graph = FastGraph::from_graph(&contracted_grap.graph);
-        ChDijkstra { graph, shortcuts }
+        ChDijkstra {
+            graph,
+            shortcuts,
+            levels: contracted_grap.levels.clone(),
+        }
+    }
+
+    pub fn get_hl(&self) -> HubGraph {
+        let mut out_labels: Vec<_> = (0..self.graph.num_nodes())
+            .map(|vertex| {
+                let entry = LabelEntry {
+                    id: vertex,
+                    cost: 0,
+                    predecessor: vertex,
+                };
+
+                Label {
+                    entries: vec![entry],
+                }
+            })
+            .collect();
+
+        let mut in_labels = out_labels.clone();
+
+        for level_list in self.levels.iter().rev() {
+            for vertex in level_list {
+                for out_edge in self.graph.out_edges(*vertex) {
+                    let mut head_label_entries = out_labels[out_edge.head as usize].entries.clone();
+                    head_label_entries.iter_mut().for_each(|entry| {
+                        if entry.id == out_edge.head {
+                            entry.predecessor = *vertex;
+                        }
+                        entry.cost += out_edge.cost
+                    });
+
+                    out_labels[*vertex as usize]
+                        .entries
+                        .extend(head_label_entries);
+                }
+
+                for in_edge in self.graph.in_edges(*vertex) {
+                    let mut tail_label_entries = in_labels[in_edge.tail as usize].entries.clone();
+                    tail_label_entries.iter_mut().for_each(|entry| {
+                        if entry.id == in_edge.tail {
+                            entry.predecessor = *vertex;
+                        }
+                        entry.cost += in_edge.cost
+                    });
+
+                    in_labels[*vertex as usize]
+                        .entries
+                        .extend(tail_label_entries);
+                }
+            }
+        }
+
+        HubGraph {
+            forward_labels: out_labels,
+            backward_labels: in_labels,
+            shortcuts: self.shortcuts.clone(),
+        }
     }
 
     ///

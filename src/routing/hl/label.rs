@@ -7,7 +7,7 @@ use super::label_entry::LabelEntry;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Label {
-    pub label: Vec<LabelEntry>,
+    pub entries: Vec<LabelEntry>,
 }
 
 impl Label {
@@ -23,12 +23,12 @@ impl Label {
         labels.sort_unstable_by_key(|entry| entry.id);
         labels.shrink_to_fit();
 
-        Label { label: labels }
+        Label { entries: labels }
     }
 
     pub fn prune_forward(&mut self, backward_labels: &Vec<Label>) {
-        self.label = self
-            .label
+        self.entries = self
+            .entries
             .iter()
             .filter(|entry| {
                 let backward_label = backward_labels.get(entry.id as usize).unwrap();
@@ -40,8 +40,8 @@ impl Label {
     }
 
     pub fn prune_backward(&mut self, forward_label: &Vec<Label>) {
-        self.label = self
-            .label
+        self.entries = self
+            .entries
             .iter()
             .filter(|entry| {
                 let forward_label = forward_label.get(entry.id as usize).unwrap();
@@ -54,13 +54,13 @@ impl Label {
 
     pub fn set_predecessor(&mut self) {
         // create map id -> idx
-        let mut id_idx = HashMap::with_capacity(self.label.len());
-        for idx in 0..self.label.len() {
-            id_idx.insert(self.label[idx].id, idx as u32);
+        let mut id_idx = HashMap::with_capacity(self.entries.len());
+        for idx in 0..self.entries.len() {
+            id_idx.insert(self.entries[idx].id, idx as u32);
         }
 
         // use map to set id (of predecessor) to idx (of predecessor)
-        for entry in self.label.iter_mut() {
+        for entry in self.entries.iter_mut() {
             entry.predecessor = *id_idx.get(&entry.predecessor).unwrap();
         }
     }
@@ -70,10 +70,10 @@ impl Label {
         let mut idx = i_self;
 
         // only guaranted to terminate if set_predecessor was called before
-        route.push(self.label[idx as usize].id);
-        while self.label[idx as usize].predecessor != idx {
-            idx = self.label[idx as usize].predecessor;
-            route.push(self.label[idx as usize].id);
+        route.push(self.entries[idx as usize].id);
+        while self.entries[idx as usize].predecessor != idx {
+            idx = self.entries[idx as usize].predecessor;
+            route.push(self.entries[idx as usize].id);
         }
 
         route
@@ -108,9 +108,9 @@ impl Label {
         let mut min_i_self = 0;
         let mut min_i_other = 0;
 
-        while i_self < self.label.len() && i_other < other.label.len() {
-            let self_entry = &self.label[i_self];
-            let other_entry = &other.label[i_other];
+        while i_self < self.entries.len() && i_other < other.entries.len() {
+            let self_entry = &self.entries[i_self];
+            let other_entry = &other.entries[i_other];
 
             match self_entry.id.cmp(&other_entry.id) {
                 std::cmp::Ordering::Less => i_self += 1,

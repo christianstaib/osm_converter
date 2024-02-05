@@ -50,12 +50,12 @@ impl HubGraph {
         let summed_label_size: u64 = self
             .forward_labels
             .iter()
-            .map(|label| label.label.len() as u64)
+            .map(|label| label.entries.len() as u64)
             .sum::<u64>()
             + self
                 .backward_labels
                 .iter()
-                .map(|label| label.label.len() as u64)
+                .map(|label| label.entries.len() as u64)
                 .sum::<u64>();
         summed_label_size as f32 / (2 * self.forward_labels.len()) as f32
     }

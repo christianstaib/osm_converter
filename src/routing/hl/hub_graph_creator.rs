@@ -17,7 +17,7 @@ impl HubGraphCreator {
                     predecessor: vertex,
                 };
                 Label {
-                    label: vec![label_entry],
+                    entries: vec![label_entry],
                 }
             })
             .collect();
