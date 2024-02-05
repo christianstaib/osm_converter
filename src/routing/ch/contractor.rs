@@ -126,9 +126,13 @@ impl Contractor {
     }
 
     fn removing_edges_violating_level_property(&mut self) {
-        self.graph.out_edges.iter_mut().for_each(|edges| {
-            edges.retain(|edge| self.levels[edge.head as usize] >= self.levels[edge.tail as usize]);
-        });
+        self.graph
+            .out_edges
+            .iter_mut()
+            .enumerate()
+            .for_each(|(tail, edges)| {
+                edges.retain(|edge| self.levels[edge.head as usize] >= self.levels[tail as usize]);
+            });
 
         self.graph.in_edges.iter_mut().for_each(|edges| {
             edges.retain(|edge| self.levels[edge.head as usize] <= self.levels[edge.tail as usize]);

@@ -29,14 +29,14 @@ impl DirectedWeightedEdge {
         }
     }
 
-    pub fn get_out_fast_edge(&self) -> DirectedTaillessWeightedEdge {
+    pub fn tailless(&self) -> DirectedTaillessWeightedEdge {
         DirectedTaillessWeightedEdge {
             head: self.head,
             cost: self.cost,
         }
     }
 
-    pub fn get_in_fast_edge(&self) -> DirectedHeadlessWeightedEdge {
+    pub fn headless(&self) -> DirectedHeadlessWeightedEdge {
         DirectedHeadlessWeightedEdge {
             tail: self.tail,
             cost: self.cost,

@@ -13,17 +13,17 @@ pub fn remove_edge_to_self(graph: &mut Graph) {
 }
 
 pub fn removing_double_edges(graph: &mut Graph) {
-    for i in 0..graph.out_edges.len() {
+    for tail in 0..graph.out_edges.len() {
         let mut edge_map = HashMap::new();
-        for edge in &graph.out_edges[i] {
-            let edge_tuple = (edge.head, edge.tail);
+        for edge in &graph.out_edges[tail] {
+            let edge_tuple = (edge.head, tail);
             let current_cost = edge_map.get(&edge_tuple).unwrap_or(&u32::MAX);
             if &edge.cost < current_cost {
                 edge_map.insert(edge_tuple, edge.cost);
             }
         }
-        graph.out_edges[i]
-            .retain(|edge| edge.cost <= *edge_map.get(&(edge.head, edge.tail)).unwrap());
+        graph.out_edges[tail]
+            .retain(|edge| edge.cost <= *edge_map.get(&(edge.head, tail)).unwrap());
     }
 
     for i in 0..graph.in_edges.len() {

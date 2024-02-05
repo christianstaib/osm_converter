@@ -3,7 +3,7 @@ use std::{collections::HashSet, usize};
 use serde_derive::{Deserialize, Serialize};
 
 use super::{
-    edge::DirectedWeightedEdge,
+    edge::{DirectedTaillessWeightedEdge, DirectedWeightedEdge},
     naive_graph::NaiveGraph,
     route::{Route, RouteRequest},
     types::VertexId,
@@ -20,7 +20,7 @@ use super::{
 ///
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Graph {
-    pub out_edges: Vec<Vec<DirectedWeightedEdge>>,
+    pub out_edges: Vec<Vec<DirectedTaillessWeightedEdge>>,
     pub in_edges: Vec<Vec<DirectedWeightedEdge>>,
 }
 
@@ -80,7 +80,7 @@ impl Graph {
         if (self.out_edges.len() as u32) <= edge.tail {
             self.out_edges.resize((edge.tail + 1) as usize, Vec::new());
         }
-        self.out_edges[edge.tail as usize].push(edge.clone());
+        self.out_edges[edge.tail as usize].push(edge.tailless());
 
         if (self.in_edges.len() as u32) <= edge.head {
             self.in_edges.resize((edge.head + 1) as usize, Vec::new());
@@ -91,7 +91,7 @@ impl Graph {
     /// Removes an edge from the graph.
     pub fn remove_edge(&mut self, edge: &DirectedWeightedEdge) {
         if let Some(out_edges) = self.out_edges.get_mut(edge.tail as usize) {
-            out_edges.retain(|out_edge| out_edge != edge);
+            out_edges.retain(|out_edge| out_edge.head != edge.head);
         }
 
         if let Some(in_edges) = self.in_edges.get_mut(edge.head as usize) {
@@ -103,12 +103,12 @@ impl Graph {
     pub fn remove_vertex(&mut self, vertex: VertexId) {
         let out_edges = std::mem::take(&mut self.out_edges[vertex as usize]);
         out_edges.iter().for_each(|out_edge| {
-            self.in_edges[out_edge.head as usize].retain(|in_edge| in_edge != out_edge)
+            self.in_edges[out_edge.head as usize].retain(|in_edge| in_edge.tail != vertex)
         });
 
         let in_edges = std::mem::take(&mut self.in_edges[vertex as usize]);
         in_edges.iter().for_each(|in_edge| {
-            self.out_edges[in_edge.tail as usize].retain(|out_edge| out_edge != in_edge);
+            self.out_edges[in_edge.tail as usize].retain(|out_edge| out_edge.head != vertex);
         });
     }
 
