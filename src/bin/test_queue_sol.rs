@@ -8,7 +8,7 @@ use osm_test::routing::{
     graph::Graph,
     hl::hub_graph::HubGraph,
     naive_graph::NaiveGraph,
-    path::{RouteRequest, Routing},
+    path::{PathRequest, Routing},
     simple_algorithms::{bi_dijkstra::BiDijkstra, ch_bi_dijkstra::ChDijkstra, dijkstra::Dijkstra},
 };
 
@@ -70,7 +70,7 @@ fn main() {
         .collect();
 
     for (source_target, true_cost) in queue.iter().zip(sol.iter()).progress() {
-        let request = RouteRequest {
+        let request = PathRequest {
             source: source_target[0],
             target: source_target[1],
         };

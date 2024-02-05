@@ -1,7 +1,7 @@
 use crate::routing::{
     dijkstra_data::DijkstraData,
     fast_graph::FastGraph,
-    path::{RouteRequest, RouteResponse, Routing},
+    path::{PathRequest, RouteResponse, Routing},
 };
 
 #[derive(Clone)]
@@ -10,7 +10,7 @@ pub struct Dijkstra<'a> {
 }
 
 impl<'a> Routing for Dijkstra<'a> {
-    fn get_route(&self, route_request: &RouteRequest) -> RouteResponse {
+    fn get_route(&self, route_request: &PathRequest) -> RouteResponse {
         let data = self.get_forward_data(route_request.source);
         let route = data.get_route(route_request.target);
         RouteResponse {

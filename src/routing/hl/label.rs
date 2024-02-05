@@ -5,7 +5,7 @@ use serde_derive::{Deserialize, Serialize};
 
 use super::label_entry::LabelEntry;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Label {
     pub label: Vec<LabelEntry>,
 }

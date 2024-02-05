@@ -7,7 +7,7 @@ use super::{
         DirectedEdge, DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge,
         DirectedWeightedEdge,
     },
-    path::{Path, RouteRequest},
+    path::{Path, PathRequest},
     types::VertexId,
 };
 
@@ -109,7 +109,7 @@ impl Graph {
     }
 
     /// Check if a route is correct for a given request. Panics if not.
-    pub fn validate_route(&self, request: &RouteRequest, route: &Path) {
+    pub fn validate_route(&self, request: &PathRequest, route: &Path) {
         // check if route start and end is correct
         assert_eq!(route.verticies.first().unwrap(), &request.source);
         assert_eq!(route.verticies.last().unwrap(), &request.target);

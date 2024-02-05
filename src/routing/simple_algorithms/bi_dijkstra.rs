@@ -1,7 +1,7 @@
 use crate::routing::{
     dijkstra_data::DijkstraData,
     fast_graph::FastGraph,
-    path::{Path, RouteRequest, RouteResponse, Routing},
+    path::{Path, PathRequest, RouteResponse, Routing},
     types::VertexId,
 };
 
@@ -11,7 +11,7 @@ pub struct BiDijkstra<'a> {
 }
 
 impl<'a> Routing for BiDijkstra<'a> {
-    fn get_route(&self, route_request: &RouteRequest) -> RouteResponse {
+    fn get_route(&self, route_request: &PathRequest) -> RouteResponse {
         self.get_data(&route_request)
     }
 }
@@ -21,7 +21,7 @@ impl<'a> BiDijkstra<'a> {
         BiDijkstra { graph }
     }
 
-    pub fn get_data(&self, request: &RouteRequest) -> RouteResponse {
+    pub fn get_data(&self, request: &PathRequest) -> RouteResponse {
         let mut forward_data = DijkstraData::new(self.graph.num_nodes() as usize, request.source);
         let mut backward_data = DijkstraData::new(self.graph.num_nodes() as usize, request.target);
 

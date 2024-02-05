@@ -3,7 +3,7 @@ use serde_derive::{Deserialize, Serialize};
 use super::{dijkstra_data::DijkstraData, types::VertexId};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct RouteRequest {
+pub struct PathRequest {
     pub source: VertexId,
     pub target: VertexId,
 }
@@ -16,7 +16,7 @@ pub struct Path {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RouteValidationRequest {
-    pub request: RouteRequest,
+    pub request: PathRequest,
     pub cost: Option<u32>,
 }
 
@@ -28,7 +28,7 @@ impl RouteValidationRequest {
             cost = Some(str_cost);
         }
         Some(RouteValidationRequest {
-            request: RouteRequest {
+            request: PathRequest {
                 source: line[0].parse().ok()?,
                 target: line[1].parse().ok()?,
             },
@@ -44,7 +44,7 @@ pub struct RouteResponse {
 }
 
 pub trait Routing {
-    fn get_route(&self, route_request: &RouteRequest) -> RouteResponse;
+    fn get_route(&self, route_request: &PathRequest) -> RouteResponse;
 }
 
 impl RouteResponse {
@@ -57,9 +57,9 @@ impl RouteResponse {
     }
 }
 
-impl RouteRequest {
-    pub fn reversed(&self) -> RouteRequest {
-        RouteRequest {
+impl PathRequest {
+    pub fn reversed(&self) -> PathRequest {
+        PathRequest {
             source: self.target,
             target: self.source,
         }

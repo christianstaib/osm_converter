@@ -6,7 +6,7 @@ use osm_test::routing::{
     fast_graph::FastGraph,
     graph::Graph,
     naive_graph::NaiveGraph,
-    path::{RouteRequest, RouteValidationRequest, Routing},
+    path::{PathRequest, RouteValidationRequest, Routing},
     simple_algorithms::dijkstra::Dijkstra,
 };
 use rand::Rng;
@@ -40,9 +40,9 @@ fn main() {
         .par_bridge()
         .map(|_| {
             let mut rng = rand::thread_rng();
-            let request = RouteRequest {
-                source: rng.gen_range(0..graph.num_nodes) as u32,
-                target: rng.gen_range(0..graph.num_nodes) as u32,
+            let request = PathRequest {
+                source: rng.gen_range(0..graph.num_nodes()) as u32,
+                target: rng.gen_range(0..graph.num_nodes()) as u32,
             };
 
             let response = dijkstra.get_route(&request);

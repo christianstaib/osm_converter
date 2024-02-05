@@ -1,4 +1,5 @@
 pub mod ch;
+pub mod ch_graph;
 pub mod dijkstra_data;
 pub mod edge;
 pub mod fast_edge_access;

@@ -3,7 +3,7 @@ use std::time::Instant;
 
 use osm_test::routing::graph::Graph;
 use osm_test::routing::naive_graph::NaiveGraph;
-use osm_test::routing::path::RouteRequest;
+use osm_test::routing::path::PathRequest;
 use osm_test::routing::simple_algorithms::bi_dijkstra::BiDijkstra;
 use osm_test::routing::{fast_graph::FastGraph, path::Routing};
 use osm_test::sphere::geometry;
@@ -58,7 +58,7 @@ async fn main() {
         .map(move |route_request_lat_lon: RouteRequestLatLon| {
             let source = fmi.nearest(route_request_lat_lon.from.0, route_request_lat_lon.from.1);
             let target = fmi.nearest(route_request_lat_lon.to.0, route_request_lat_lon.to.1);
-            let request = RouteRequest { source, target };
+            let request = PathRequest { source, target };
 
             let dijkstra = BiDijkstra::new(&graph);
             let start = Instant::now();

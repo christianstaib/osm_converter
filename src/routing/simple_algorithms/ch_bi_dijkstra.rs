@@ -6,7 +6,7 @@ use crate::routing::{
     ch::contractor::ContractedGraph,
     edge::DirectedEdge,
     fast_graph::FastGraph,
-    path::{Path, RouteRequest},
+    path::{Path, PathRequest},
     queue::heap_queue::State,
 };
 
@@ -220,7 +220,7 @@ impl ChDijkstra {
     }
 
     /// (contact_node, cost)
-    pub fn get_cost(&self, request: &RouteRequest) -> Option<u32> {
+    pub fn get_cost(&self, request: &PathRequest) -> Option<u32> {
         let mut forward_costs = HashMap::new();
         let mut backward_costs = HashMap::new();
 
@@ -314,7 +314,7 @@ impl ChDijkstra {
         None
     }
     /// (contact_node, cost)
-    pub fn get_route(&self, request: &RouteRequest) -> Option<Path> {
+    pub fn get_route(&self, request: &PathRequest) -> Option<Path> {
         let mut forward_costs = HashMap::new();
         let mut backward_costs = HashMap::new();
 
