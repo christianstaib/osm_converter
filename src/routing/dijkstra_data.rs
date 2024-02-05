@@ -26,7 +26,7 @@ impl DijsktraEntry {
 #[derive(Clone)]
 pub struct DijkstraData {
     pub queue: HeapQueue,
-    pub nodes: Vec<DijsktraEntry>,
+    pub verticies: Vec<DijsktraEntry>,
 }
 
 impl DijkstraData {
@@ -35,13 +35,16 @@ impl DijkstraData {
         let mut nodes = vec![DijsktraEntry::new(); num_nodes];
         nodes[source as usize].cost = 0;
         queue.insert(0, source);
-        DijkstraData { queue, nodes }
+        DijkstraData {
+            queue,
+            verticies: nodes,
+        }
     }
 
     pub fn pop(&mut self) -> Option<State> {
         while let Some(state) = self.queue.pop() {
-            if !self.nodes[state.value as usize].is_expanded {
-                self.nodes[state.value as usize].is_expanded = true;
+            if !self.verticies[state.value as usize].is_expanded {
+                self.verticies[state.value as usize].is_expanded = true;
                 return Some(state);
             }
         }
@@ -50,26 +53,26 @@ impl DijkstraData {
     }
 
     pub fn update(&mut self, source: VertexId, target: VertexId, edge_cost: u32) {
-        let alternative_cost = self.nodes[source as usize].cost + edge_cost;
-        let current_cost = self.nodes[target as usize].cost;
+        let alternative_cost = self.verticies[source as usize].cost + edge_cost;
+        let current_cost = self.verticies[target as usize].cost;
         if alternative_cost < current_cost {
-            self.nodes[target as usize].predecessor = source;
-            self.nodes[target as usize].cost = alternative_cost;
+            self.verticies[target as usize].predecessor = source;
+            self.verticies[target as usize].cost = alternative_cost;
             self.queue.insert(alternative_cost, target);
         }
     }
 
     pub fn get_route(&self, target: VertexId) -> Option<Route> {
-        if self.nodes[target as usize].cost != u32::MAX {
+        if self.verticies[target as usize].cost != u32::MAX {
             let mut route = vec![target];
             let mut current = target;
-            while self.nodes[current as usize].predecessor != u32::MAX {
-                current = self.nodes[current as usize].predecessor;
+            while self.verticies[current as usize].predecessor != u32::MAX {
+                current = self.verticies[current as usize].predecessor;
                 route.push(current);
             }
             route.reverse();
             return Some(Route {
-                cost: self.nodes[target as usize].cost,
+                cost: self.verticies[target as usize].cost,
                 nodes: route,
             });
         }
@@ -77,7 +80,7 @@ impl DijkstraData {
     }
 
     pub fn get_scanned_points(&self) -> Vec<usize> {
-        self.nodes
+        self.verticies
             .iter()
             .enumerate()
             .filter(|(_, entry)| entry.cost != u32::MAX)
