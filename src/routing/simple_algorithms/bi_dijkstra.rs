@@ -35,61 +35,46 @@ impl<'a> BiDijkstra<'a> {
 
     pub fn get_route_data(
         &self,
-        forward_data: &mut DijkstraData,
-        backward_data: &mut DijkstraData,
+        forward: &mut DijkstraData,
+        backward: &mut DijkstraData,
     ) -> Option<Route> {
         let mut minimal_cost = u32::MAX;
         let mut minimal_cost_vertex = u32::MAX;
 
-        while !forward_data.is_empty() || !backward_data.is_empty() {
-            let forward_state = forward_data.pop();
-            if let Some(forward_state) = forward_state {
-                if let Some(backward_cost) =
-                    backward_data.verticies[forward_state.value as usize].cost
-                {
-                    let contact_cost = forward_data.verticies[forward_state.value as usize]
-                        .cost
-                        .unwrap()
-                        + backward_cost;
-                    if contact_cost < minimal_cost {
-                        minimal_cost = contact_cost;
-                        minimal_cost_vertex = forward_state.value;
+        while !forward.is_empty() || !backward.is_empty() {
+            if let Some(state) = forward.pop() {
+                if let Some(backward_cost) = backward.verticies[state.value as usize].cost {
+                    let cost =
+                        forward.verticies[state.value as usize].cost.unwrap() + backward_cost;
+                    if cost < minimal_cost {
+                        minimal_cost = cost;
+                        minimal_cost_vertex = state.value;
                     }
                 }
                 self.graph
-                    .out_edges(forward_state.value)
+                    .out_edges(state.value)
                     .iter()
-                    .for_each(|edge| {
-                        forward_data.update(forward_state.value, edge.head, edge.cost)
-                    });
+                    .for_each(|edge| forward.update(state.value, edge.head, edge.cost));
             }
 
-            let backward_state = backward_data.pop();
-            if let Some(backward_state) = backward_state {
-                if forward_data.verticies[backward_state.value as usize].is_expanded {
-                    if let Some(forward_cost) =
-                        forward_data.verticies[backward_state.value as usize].cost
-                    {
-                        let contact_cost = forward_cost
-                            + backward_data.verticies[backward_state.value as usize]
-                                .cost
-                                .unwrap();
-                        if contact_cost < minimal_cost {
-                            minimal_cost = contact_cost;
-                            minimal_cost_vertex = backward_state.value;
+            if let Some(state) = backward.pop() {
+                if forward.verticies[state.value as usize].is_expanded {
+                    if let Some(forward_cost) = forward.verticies[state.value as usize].cost {
+                        let cost =
+                            forward_cost + backward.verticies[state.value as usize].cost.unwrap();
+                        if cost < minimal_cost {
+                            minimal_cost = cost;
+                            minimal_cost_vertex = state.value;
                         }
                     }
                 }
-                self.graph
-                    .in_edges(backward_state.value)
-                    .iter()
-                    .for_each(|edge| {
-                        backward_data.update(backward_state.value, edge.tail, edge.cost);
-                    });
+                self.graph.in_edges(state.value).iter().for_each(|edge| {
+                    backward.update(state.value, edge.tail, edge.cost);
+                });
             }
         }
 
-        construct_route(minimal_cost_vertex, forward_data, backward_data)
+        construct_route(minimal_cost_vertex, forward, backward)
     }
 }
 
