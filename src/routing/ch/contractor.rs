@@ -60,7 +60,7 @@ impl Contractor {
             .collect();
 
         let max_level = self.levels.iter().max().unwrap();
-        let mut levels = vec![Vec::new(); *max_level as usize];
+        let mut levels = vec![Vec::new(); *max_level as usize + 1];
 
         for (vertex, level) in self.levels.iter().enumerate() {
             levels[*level as usize].push(vertex as u32);

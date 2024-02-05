@@ -8,8 +8,8 @@ use super::{
 #[derive(Clone)]
 pub struct FastGraph {
     pub num_nodes: u32,
-    pub out_edges: FastOutEdgeAccess,
-    pub in_edges: FastInEdgeAccess,
+    out_edges: FastOutEdgeAccess,
+    in_edges: FastInEdgeAccess,
 }
 
 impl FastGraph {
