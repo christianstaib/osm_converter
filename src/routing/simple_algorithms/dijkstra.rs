@@ -1,7 +1,7 @@
 use crate::routing::{
     dijkstra_data::DijkstraData,
     fast_graph::FastGraph,
-    route::{RouteRequest, RouteResponse, Routing},
+    path::{RouteRequest, RouteResponse, Routing},
 };
 
 #[derive(Clone)]

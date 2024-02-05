@@ -6,7 +6,7 @@ use osm_test::routing::{
     fast_graph::FastGraph,
     graph::Graph,
     naive_graph::NaiveGraph,
-    route::{RouteRequest, RouteValidationRequest, Routing},
+    path::{RouteRequest, RouteValidationRequest, Routing},
     simple_algorithms::dijkstra::Dijkstra,
 };
 use rand::Rng;

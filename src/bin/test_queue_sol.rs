@@ -8,7 +8,7 @@ use osm_test::routing::{
     graph::Graph,
     hl::hub_graph::HubGraph,
     naive_graph::NaiveGraph,
-    route::{RouteRequest, Routing},
+    path::{RouteRequest, Routing},
     simple_algorithms::{bi_dijkstra::BiDijkstra, ch_bi_dijkstra::ChDijkstra, dijkstra::Dijkstra},
 };
 

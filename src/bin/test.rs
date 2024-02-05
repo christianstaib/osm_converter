@@ -4,7 +4,7 @@ use osm_test::routing::{
     fast_graph::FastGraph,
     graph::Graph,
     naive_graph::NaiveGraph,
-    route::{RouteResponse, RouteValidationRequest, Routing},
+    path::{RouteResponse, RouteValidationRequest, Routing},
     simple_algorithms::dijkstra::Dijkstra,
 };
 use serde_derive::{Deserialize, Serialize};

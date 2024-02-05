@@ -3,9 +3,9 @@ use std::time::Instant;
 
 use osm_test::routing::graph::Graph;
 use osm_test::routing::naive_graph::NaiveGraph;
-use osm_test::routing::route::RouteRequest;
+use osm_test::routing::path::RouteRequest;
 use osm_test::routing::simple_algorithms::bi_dijkstra::BiDijkstra;
-use osm_test::routing::{fast_graph::FastGraph, route::Routing};
+use osm_test::routing::{fast_graph::FastGraph, path::Routing};
 use osm_test::sphere::geometry;
 use osm_test::sphere::geometry::linestring::Linestring;
 use osm_test::sphere::geometry::planet::Planet;
@@ -72,11 +72,10 @@ async fn main() {
             let time = start.elapsed();
 
             if let Some(route) = response.route {
-                let ids = &route.nodes;
+                let ids = &route.verticies;
                 let path = fmi.convert_path(ids);
                 let linesstring = Linestring::new(path);
 
-                assert!(&route.is_valid(&graph, &request));
                 let mut planet = Planet::new();
                 planet.linestrings.push(linesstring);
                 for id in extendes_ids {

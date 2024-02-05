@@ -3,9 +3,11 @@ use std::{collections::HashSet, usize};
 use serde_derive::{Deserialize, Serialize};
 
 use super::{
-    edge::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge, DirectedWeightedEdge},
-    naive_graph::NaiveGraph,
-    route::{Route, RouteRequest},
+    edge::{
+        DirectedEdge, DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge,
+        DirectedWeightedEdge,
+    },
+    path::{Path, RouteRequest},
     types::VertexId,
 };
 
@@ -57,9 +59,9 @@ impl Graph {
 
         for _ in 0..hops {
             let mut new_neighbors = HashSet::new();
-            for &vertex in neighbors.iter() {
-                new_neighbors.extend(self.out_neighborhood(vertex));
-                new_neighbors.extend(self.in_neighborhood(vertex));
+            for &neighbor in neighbors.iter() {
+                new_neighbors.extend(self.out_neighborhood(neighbor));
+                new_neighbors.extend(self.in_neighborhood(neighbor));
             }
             neighbors.extend(new_neighbors);
         }
@@ -83,7 +85,7 @@ impl Graph {
     }
 
     /// Removes an edge from the graph.
-    pub fn remove_edge(&mut self, edge: &DirectedWeightedEdge) {
+    pub fn remove_edge(&mut self, edge: &DirectedEdge) {
         if let Some(out_edges) = self.out_edges.get_mut(edge.tail as usize) {
             out_edges.retain(|out_edge| out_edge.head != edge.head);
         }
@@ -107,14 +109,14 @@ impl Graph {
     }
 
     /// Check if a route is correct for a given request. Panics if not.
-    pub fn validate_route(&self, request: &RouteRequest, route: &Route) {
+    pub fn validate_route(&self, request: &RouteRequest, route: &Path) {
         // check if route start and end is correct
-        assert_eq!(route.nodes.first().unwrap(), &request.source);
-        assert_eq!(route.nodes.last().unwrap(), &request.target);
+        assert_eq!(route.verticies.first().unwrap(), &request.source);
+        assert_eq!(route.verticies.last().unwrap(), &request.target);
 
         // check if there is an edge between consecutive route nodes
         let mut edges = Vec::new();
-        for node_pair in route.nodes.windows(2) {
+        for node_pair in route.verticies.windows(2) {
             if let [from, to] = node_pair {
                 let min_edge = self.out_edges[*from as usize]
                     .iter()

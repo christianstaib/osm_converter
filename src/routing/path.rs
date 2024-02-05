@@ -1,6 +1,6 @@
 use serde_derive::{Deserialize, Serialize};
 
-use super::{dijkstra_data::DijkstraData, fast_graph::FastGraph, types::VertexId};
+use super::{dijkstra_data::DijkstraData, types::VertexId};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RouteRequest {
@@ -9,8 +9,8 @@ pub struct RouteRequest {
 }
 
 #[derive(Clone)]
-pub struct Route {
-    pub nodes: Vec<VertexId>,
+pub struct Path {
+    pub verticies: Vec<VertexId>,
     pub cost: u32,
 }
 
@@ -39,30 +39,12 @@ impl RouteValidationRequest {
 
 #[derive(Clone)]
 pub struct RouteResponse {
-    pub route: Option<Route>,
+    pub route: Option<Path>,
     pub data: Vec<DijkstraData>,
 }
 
 pub trait Routing {
     fn get_route(&self, route_request: &RouteRequest) -> RouteResponse;
-}
-
-impl Route {
-    pub fn is_valid(&self, _graph: &FastGraph, _request: &RouteRequest) -> bool {
-        // let mut true_cost = 0;
-        // for (source, target) in self.nodes.windows(2).map(|vec| (vec[0], vec[1])) {
-        //     true_cost += graph
-        //         .outgoing_edges(source)
-        //         .iter()
-        //         .find(|edge| edge.target == target)
-        //         .unwrap()
-        //         .cost;
-        // }
-        // (true_cost == self.cost)
-        //     && (self.nodes.first().unwrap() == &request.source)
-        //     && (self.nodes.last().unwrap() == &request.target)
-        true
-    }
 }
 
 impl RouteResponse {

@@ -8,7 +8,7 @@ use serde_derive::{Deserialize, Serialize};
 
 use crate::routing::{
     edge::DirectedEdge,
-    route::{Route, RouteRequest},
+    path::{Path, RouteRequest},
     simple_algorithms::ch_bi_dijkstra::ChDijkstra,
 };
 
@@ -100,7 +100,7 @@ impl HubGraph {
         forward_label.get_cost(backward_label)
     }
 
-    pub fn get_route(&self, request: &RouteRequest) -> Option<Route> {
+    pub fn get_route(&self, request: &RouteRequest) -> Option<Path> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
         let backward_label = self.backward_labels.get(request.target as usize)?;
         let (cost, mut route_with_shortcuts) = forward_label.get_route(backward_label)?;
@@ -123,6 +123,9 @@ impl HubGraph {
         route.push(route_with_shortcuts[0]);
         route.reverse();
 
-        Some(Route { nodes: route, cost })
+        Some(Path {
+            verticies: route,
+            cost,
+        })
     }
 }

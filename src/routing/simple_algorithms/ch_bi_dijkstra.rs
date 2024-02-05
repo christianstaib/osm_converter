@@ -6,8 +6,8 @@ use crate::routing::{
     ch::contractor::ContractedGraph,
     edge::DirectedEdge,
     fast_graph::FastGraph,
+    path::{Path, RouteRequest},
     queue::heap_queue::State,
-    route::{Route, RouteRequest},
 };
 
 #[derive(Clone)]
@@ -314,7 +314,7 @@ impl ChDijkstra {
         None
     }
     /// (contact_node, cost)
-    pub fn get_route(&self, request: &RouteRequest) -> Option<Route> {
+    pub fn get_route(&self, request: &RouteRequest) -> Option<Path> {
         let mut forward_costs = HashMap::new();
         let mut backward_costs = HashMap::new();
 
@@ -424,7 +424,7 @@ fn get_route(
     meeting_cost: u32,
     forward_predecessor: HashMap<u32, u32>,
     backward_predecessor: HashMap<u32, u32>,
-) -> Option<Route> {
+) -> Option<Path> {
     if meeting_cost == u32::MAX {
         return None;
     }
@@ -438,8 +438,8 @@ fn get_route(
     while let Some(new_current) = backward_predecessor.get(&current) {
         current = *new_current;
     }
-    let route = Route {
-        nodes: route,
+    let route = Path {
+        verticies: route,
         cost: meeting_cost,
     };
     Some(route)

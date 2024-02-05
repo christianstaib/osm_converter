@@ -7,7 +7,7 @@ use std::{
 use clap::Parser;
 use indicatif::ProgressIterator;
 use osm_test::routing::{
-    graph::Graph, hl::hub_graph::HubGraph, naive_graph::NaiveGraph, route::RouteValidationRequest,
+    graph::Graph, hl::hub_graph::HubGraph, naive_graph::NaiveGraph, path::RouteValidationRequest,
 };
 
 /// Starts a routing service on localhost:3030/route

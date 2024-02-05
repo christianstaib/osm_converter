@@ -6,7 +6,7 @@ pub mod fast_graph;
 pub mod graph;
 pub mod hl;
 pub mod naive_graph;
+pub mod path;
 pub mod queue;
-pub mod route;
 pub mod simple_algorithms;
 pub mod types;

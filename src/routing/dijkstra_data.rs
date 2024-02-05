@@ -1,8 +1,8 @@
 use std::usize;
 
 use super::{
+    path::Path,
     queue::heap_queue::{HeapQueue, State},
-    route::Route,
     types::VertexId,
 };
 
@@ -66,7 +66,7 @@ impl DijkstraData {
         }
     }
 
-    pub fn get_route(&self, target: VertexId) -> Option<Route> {
+    pub fn get_route(&self, target: VertexId) -> Option<Path> {
         let mut route = vec![target];
         let mut current = target;
         while let Some(predecessor) = self.verticies[current as usize].predecessor {
@@ -74,9 +74,9 @@ impl DijkstraData {
             route.push(current);
         }
         route.reverse();
-        Some(Route {
+        Some(Path {
             cost: self.verticies[target as usize].cost?,
-            nodes: route,
+            verticies: route,
         })
     }
 
