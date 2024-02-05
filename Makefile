@@ -35,10 +35,14 @@ leaflet:
 	docker run -dit --name leaflet -p 8080:80 -v ./public-html:/usr/local/apache2/htdocs/ httpd:2.4
 
 server:
-	cargo run --bin server --release  -- --fmi-path tests/data/fmi/network.fmi
+	cargo run --bin server --release  --\
+		--fmi-path tests/data/fmi/network.fmi
 
 test:
-	cargo run --bin test --release -- --fmi-path tests/data/fmi/network.fmi --tests-path tests/data/fmi/tests.json --number-of-tests $(NUM_TESTS)
+	cargo run --bin test --release --\
+		--fmi-path tests/data/fmi/network.fmi\
+		--tests-path tests/data/fmi/tests.json\
+		--number-of-tests $(NUM_TESTS)
 
 test_queue_sol:
 	cargo run --bin test_queue_sol --release --\
@@ -53,50 +57,86 @@ download:
 	curl $(INTERNET_OSM) -o $(NETWORK_OSM)
 
 convert_osm:
-	cargo run --release --bin convert_osm -- --input $(NETWORK_OSM) --output  $(PLANET)
+	cargo run --release --bin convert_osm --\
+		--input $(NETWORK_OSM)\
+		--output $(PLANET)
 
 generate_network:
-	cargo run --release --bin generate_network -- --input $(PLANET) --num-nodes 4000000 --output-network $(NETWORK_FMI) --output-geojson $(NETWORK_GEOJSON) --output-image tests/data/test_geojson/network.png
+	cargo run --release --bin generate_network --\
+		--input $(PLANET)\
+		--num-nodes 4000000\
+		--output-network $(NETWORK_FMI)\
+		--output-geojson $(NETWORK_GEOJSON)\
+		--output-image tests/data/test_geojson/network.png
 
 
 create_tests_stgt:
-	cargo run --bin create_tests --release -- --fmi-path $(STGT_FMI) --tests-path $(STGT_TESTS_JSON) --number-of-tests $(NUM_TESTS)
+	cargo run --bin create_tests --release --\
+		--fmi-path $(STGT_FMI)\
+		--tests-path $(STGT_TESTS_JSON)\
+		--number-of-tests $(NUM_TESTS)
 
 create_tests:
-	cargo run --bin create_tests --release -- --fmi-path $(NETWORK_FMI) --tests-path $(NETWORK_TESTS) --number-of-tests $(NUM_TESTS)
+	cargo run --bin create_tests --release --\
+		--fmi-path $(NETWORK_FMI)\
+		--tests-path $(NETWORK_TESTS)\
+		--number-of-tests $(NUM_TESTS)
 
 
 create_ch_stgt:
-	cargo run --bin create_ch --release -- --fmi-path $(STGT_FMI) --contracted-graph $(STGT_CONTRACTED)
+	cargo run --bin create_ch --release --\
+		--fmi-path $(STGT_FMI)\
+		--contracted-graph $(STGT_CONTRACTED)
 
 create_ch:
-	cargo run --bin create_ch --release -- --fmi-path $(NETWORK_FMI) --contracted-graph $(NETWORK_CONTRACTED)
+	cargo run --bin create_ch --release --\
+		--fmi-path $(NETWORK_FMI)\
+		--contracted-graph $(NETWORK_CONTRACTED)
 
 
 test_ch_stgt:
-	cargo run --bin test_ch --release -- --contracted-graph $(STGT_CONTRACTED) --test-path $(STGT_TESTS_JSON)
+	cargo run --bin test_ch --release --\
+		--contracted-graph $(STGT_CONTRACTED)\
+		--test-path $(STGT_TESTS_JSON)
 
 test_ch:
-	cargo run --bin test_ch --release -- --contracted-graph $(NETWORK_CONTRACTED) --test-path $(NETWORK_TESTS)
+	cargo run --bin test_ch --release --\
+		--contracted-graph $(NETWORK_CONTRACTED)\
+		--test-path $(NETWORK_TESTS)
 
 
 create_hl_stgt:
-	cargo run --bin create_hl --release -- --contracted-graph $(STGT_CONTRACTED) --hub-graph $(STGT_HUBS) --hop-limit $(HOP_LIMIT)
+	cargo run --bin create_hl --release --\
+		--contracted-graph $(STGT_CONTRACTED)\
+		--hub-graph $(STGT_HUBS)\
+		--hop-limit $(HOP_LIMIT)
 
 create_hl:
-	cargo run --bin create_hl --release -- --contracted-graph $(NETWORK_CONTRACTED) --hub-graph $(NETWORK_HUBS) --hop-limit $(HOP_LIMIT)
+	cargo run --bin create_hl --release --\
+		--contracted-graph $(NETWORK_CONTRACTED)\
+		--hub-graph $(NETWORK_HUBS)\
+		--hop-limit $(HOP_LIMIT)
 
 
 test_hl_stgt:
-	cargo run --bin test_hl --release -- --hub-graph $(STGT_HUBS) --fmi-path $(STGT_FMI) --test-path $(STGT_TESTS_JSON)
+	cargo run --bin test_hl --release --\
+		--hub-graph $(STGT_HUBS)\
+		--fmi-path $(STGT_FMI)\
+		--test-path $(STGT_TESTS_JSON)
 
 test_hl:
-	cargo run --bin test_hl --release -- --hub-graph $(NETWORK_HUBS) --fmi-path $(NETWORK_FMI) --test-path $(NETWORK_TESTS)
+	cargo run --bin test_hl --release --\
+		--hub-graph $(NETWORK_HUBS)\
+		--fmi-path $(NETWORK_FMI)\
+		--test-path $(NETWORK_TESTS)
 
 
 prune_hl_stgt:
-	cargo run --bin prune_hl --release -- --hub-graph $(STGT_HUBS) --pruned-hub-graph $(STGT_HUBS_PRUNED)
+	cargo run --bin prune_hl --release --\
+		--hub-graph $(STGT_HUBS)\
+		--pruned-hub-graph $(STGT_HUBS_PRUNED)
 
 prune_hl:
-	cargo run --bin prune_hl --release -- --hub-graph $(NETWORK_HUBS) --pruned-hub-graph $(NETWORK_HUBS_PRUNED)
-
+	cargo run --bin prune_hl --release --\
+		--hub-graph $(NETWORK_HUBS)\
+		--pruned-hub-graph $(NETWORK_HUBS_PRUNED)
