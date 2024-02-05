@@ -26,7 +26,7 @@ impl<'a> Dijkstra<'a> {
     }
 
     pub fn get_forward_data(&self, source: u32) -> DijkstraData {
-        let mut data = DijkstraData::new(self.graph.num_nodes as usize, source);
+        let mut data = DijkstraData::new(self.graph.num_nodes() as usize, source);
 
         while let Some(state) = data.pop() {
             self.graph

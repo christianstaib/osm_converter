@@ -26,15 +26,15 @@ impl HubGraph {
         let style =
             ProgressStyle::with_template("{wide_bar} {human_pos}/{human_len} {eta_precise}")
                 .unwrap();
-        let pb = ProgressBar::new((dijkstra.graph.num_nodes * 2) as u64);
+        let pb = ProgressBar::new((dijkstra.graph.num_nodes() * 2) as u64);
         pb.set_style(style);
-        let forward_labels = (0..dijkstra.graph.num_nodes)
+        let forward_labels = (0..dijkstra.graph.num_nodes())
             .into_par_iter()
             .progress_with(pb.clone())
             .map(|id| Label::new(&dijkstra.get_forward_label(id, depth_limit)))
             .collect();
-        pb.set_position(dijkstra.graph.num_nodes as u64);
-        let backward_labels = (0..dijkstra.graph.num_nodes)
+        pb.set_position(dijkstra.graph.num_nodes() as u64);
+        let backward_labels = (0..dijkstra.graph.num_nodes())
             .into_par_iter()
             .progress_with(pb)
             .map(|id| Label::new(&dijkstra.get_backward_label(id, depth_limit)))
