@@ -48,8 +48,9 @@ fn main() {
     let ch_graph: ContractedGraph = bincode::deserialize_from(reader).unwrap();
     let ch_bi_dijkstra = ChDijkstra::new(&ch_graph);
 
-    let reader = BufReader::new(File::open(args.fmi_hl_path).unwrap());
-    let hl_graph: HubGraph = bincode::deserialize_from(reader).unwrap();
+    // let reader = BufReader::new(File::open(args.fmi_hl_path).unwrap());
+    // let hl_graph: HubGraph = bincode::deserialize_from(reader).unwrap();
+    let hl_graph = ch_bi_dijkstra.get_hl();
 
     let queue: Vec<_> = BufReader::new(File::open(args.queue_path).unwrap())
         .lines()
@@ -105,6 +106,6 @@ fn main() {
         if let Some(this_cost) = response {
             cost = this_cost as i32;
         }
-        assert_eq!(true_cost, &cost, "bi dijkstra wrong");
+        assert_eq!(true_cost, &cost, "hl wrong");
     }
 }

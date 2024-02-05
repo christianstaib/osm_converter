@@ -2,6 +2,9 @@ use std::usize;
 
 use ahash::{HashMap, HashMapExt};
 use serde_derive::{Deserialize, Serialize};
+use serde_json::map::Entry;
+
+use crate::routing::{edge::DirectedEdge, types::VertexId};
 
 use super::label_entry::LabelEntry;
 
@@ -24,6 +27,35 @@ impl Label {
         labels.shrink_to_fit();
 
         Label { entries: labels }
+    }
+
+    pub fn sort_and_clean(&mut self) {
+        let mut map: HashMap<VertexId, (u32, VertexId)> = HashMap::new();
+
+        self.entries.iter().for_each(|entry| {
+            let mut cost = entry.cost;
+            let mut predecessor = entry.predecessor;
+
+            if let Some(current_cost) = map.get(&entry.id) {
+                if current_cost.0 < cost {
+                    cost = current_cost.0;
+                    predecessor = current_cost.1
+                }
+            }
+
+            map.insert(entry.id, (cost, predecessor));
+        });
+
+        self.entries = map
+            .iter()
+            .map(|(id, cost_predecessor)| LabelEntry {
+                id: *id,
+                cost: cost_predecessor.0,
+                predecessor: cost_predecessor.1,
+            })
+            .collect();
+
+        self.entries.sort_unstable_by_key(|entry| entry.id);
     }
 
     pub fn prune_forward(&mut self, backward_labels: &Vec<Label>) {

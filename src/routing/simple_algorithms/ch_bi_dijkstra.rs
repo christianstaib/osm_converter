@@ -1,6 +1,7 @@
 use std::collections::BinaryHeap;
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
+use indicatif::ProgressIterator;
 
 use crate::routing::{
     ch::contractor::ContractedGraph,
@@ -31,6 +32,8 @@ impl ChDijkstra {
     }
 
     pub fn get_hl(&self) -> HubGraph {
+        println!("fast hl generation");
+
         let mut out_labels: Vec<_> = (0..self.graph.num_nodes())
             .map(|vertex| {
                 let entry = LabelEntry {
@@ -47,7 +50,7 @@ impl ChDijkstra {
 
         let mut in_labels = out_labels.clone();
 
-        for level_list in self.levels.iter().rev() {
+        for level_list in self.levels.iter().rev().progress() {
             for vertex in level_list {
                 for out_edge in self.graph.out_edges(*vertex) {
                     let mut head_label_entries = out_labels[out_edge.head as usize].entries.clone();
@@ -62,6 +65,8 @@ impl ChDijkstra {
                         .entries
                         .extend(head_label_entries);
                 }
+                out_labels[*vertex as usize].sort_and_clean();
+                // out_labels[*vertex as usize].prune_forward(&in_labels);
 
                 for in_edge in self.graph.in_edges(*vertex) {
                     let mut tail_label_entries = in_labels[in_edge.tail as usize].entries.clone();
@@ -76,6 +81,8 @@ impl ChDijkstra {
                         .entries
                         .extend(tail_label_entries);
                 }
+                in_labels[*vertex as usize].sort_and_clean();
+                // in_labels[*vertex as usize].prune_backward(&out_labels);
             }
         }
 
