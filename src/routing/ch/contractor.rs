@@ -1,3 +1,5 @@
+use std::usize;
+
 use indicatif::ProgressBar;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
@@ -14,6 +16,7 @@ use super::{ch_queue::queue::CHQueue, contraction_helper::ContractionHelper};
 pub struct ContractedGraph {
     pub graph: Graph,
     pub shortcuts_map: Vec<(DirectedEdge, VertexId)>,
+    pub levels: Vec<Vec<u32>>,
 }
 
 pub struct Contractor {
@@ -36,11 +39,11 @@ impl Contractor {
     }
 
     pub fn get_contracted_graph(graph: &Graph) -> ContractedGraph {
-        let mut contractor = Contractor::new(graph);
+        let contractor = Contractor::new(graph);
         contractor.get_graph()
     }
 
-    pub fn get_graph(&mut self) -> ContractedGraph {
+    pub fn get_graph(mut self) -> ContractedGraph {
         let out_edges = self.graph.out_edges.clone();
         let in_edges = self.graph.in_edges.clone();
 
@@ -56,9 +59,17 @@ impl Contractor {
             .map(|(shortcut, middle)| (shortcut.unweighted(), *middle))
             .collect();
 
+        let max_level = self.levels.iter().max().unwrap();
+        let mut levels = vec![Vec::new(); *max_level as usize];
+
+        for (vertex, level) in self.levels.iter().enumerate() {
+            levels[*level as usize].push(vertex as u32);
+        }
+
         ContractedGraph {
-            graph: self.graph.clone(),
+            graph: self.graph,
             shortcuts_map: shortcuts,
+            levels,
         }
     }
 
