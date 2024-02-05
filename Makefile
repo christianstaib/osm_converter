@@ -67,17 +67,17 @@ create_tests:
 
 
 create_ch_stgt:
-	cargo run --bin create_ch --release -- --fmi-path $(STGT_FMI) --contracted-graph $(STGT_CONTRACTED) --test-path $(STGT_TESTS_JSON)
+	cargo run --bin create_ch --release -- --fmi-path $(STGT_FMI) --contracted-graph $(STGT_CONTRACTED)
 
 create_ch:
-	cargo run --bin create_ch --release -- --fmi-path $(NETWORK_FMI) --contracted-graph $(NETWORK_CONTRACTED) --test-path $(NETWORK_TESTS)
+	cargo run --bin create_ch --release -- --fmi-path $(NETWORK_FMI) --contracted-graph $(NETWORK_CONTRACTED)
 
 
 test_ch_stgt:
-	cargo run --bin test_ch --release -- --contracted-graph $(STGT_CONTRACTED)
+	cargo run --bin test_ch --release -- --contracted-graph $(STGT_CONTRACTED) --test-path $(STGT_TESTS_JSON)
 
 test_ch:
-	cargo run --bin test_ch --release -- --contracted-graph $(NETWORK_CONTRACTED)
+	cargo run --bin test_ch --release -- --contracted-graph $(NETWORK_CONTRACTED) --test-path $(NETWORK_TESTS)
 
 
 create_hl_stgt:
