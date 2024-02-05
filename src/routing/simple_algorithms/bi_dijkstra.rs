@@ -38,7 +38,7 @@ impl<'a> BiDijkstra<'a> {
         backward_data: &mut DijkstraData,
     ) -> Option<Route> {
         let mut minimal_cost = u32::MAX;
-        let mut minimal_cost_node = u32::MAX;
+        let mut minimal_cost_vertex = u32::MAX;
 
         loop {
             let forward_state = forward_data.pop();
@@ -48,7 +48,7 @@ impl<'a> BiDijkstra<'a> {
                         + backward_data.nodes[forward_state.value as usize].cost;
                     if contact_cost < minimal_cost {
                         minimal_cost = contact_cost;
-                        minimal_cost_node = forward_state.value;
+                        minimal_cost_vertex = forward_state.value;
                     }
                 }
                 self.graph
@@ -66,7 +66,7 @@ impl<'a> BiDijkstra<'a> {
                         + backward_data.nodes[backward_state.value as usize].cost;
                     if contact_cost < minimal_cost {
                         minimal_cost = contact_cost;
-                        minimal_cost_node = backward_state.value;
+                        minimal_cost_vertex = backward_state.value;
                     }
                 }
                 self.graph
@@ -82,7 +82,7 @@ impl<'a> BiDijkstra<'a> {
             }
         }
 
-        construct_route(minimal_cost_node, forward_data, backward_data)
+        construct_route(minimal_cost_vertex, forward_data, backward_data)
     }
 }
 
