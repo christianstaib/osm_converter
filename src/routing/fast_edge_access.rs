@@ -1,5 +1,5 @@
 use super::{
-    edge::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge, DirectedWeightedEdge},
+    edge::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge},
     types::VertexId,
 };
 
@@ -55,7 +55,7 @@ impl FastInEdgeAccess {
         }
     }
 
-    pub fn edges(&self, source: u32) -> &[DirectedHeadlessWeightedEdge] {
+    pub fn edges(&self, source: VertexId) -> &[DirectedHeadlessWeightedEdge] {
         let start = self.head_start_at[source as usize] as usize;
         let end = self.head_start_at[source as usize + 1] as usize;
 

@@ -6,8 +6,8 @@ pub struct EdgeDifferencePriority {}
 
 impl PriorityTerm for EdgeDifferencePriority {
     fn priority(&self, v: u32, graph: &Graph) -> i32 {
-        let shortcut_generator = ContractionHelper::new(graph);
-        let shortcuts = shortcut_generator.generate_shortcuts(v, 10);
+        let shortcut_generator = ContractionHelper::new(graph, 10);
+        let shortcuts = shortcut_generator.generate_shortcuts(v);
 
         let current_pairs = graph.in_edges[v as usize].len() + graph.out_edges[v as usize].len();
 

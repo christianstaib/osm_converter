@@ -44,7 +44,7 @@ impl Contractor {
         let out_edges = self.graph.out_edges.clone();
         let in_edges = self.graph.in_edges.clone();
 
-        let shortcuts = self.contract_node_sets();
+        let shortcuts = self.contract_single_nodes();
 
         self.graph.out_edges = out_edges;
         self.graph.in_edges = in_edges;
@@ -70,8 +70,8 @@ impl Contractor {
 
         let mut level = 0;
         while let Some(v) = self.queue.pop(&self.graph) {
-            let shortcut_generator = ContractionHelper::new(&self.graph);
-            let mut this_shortcuts = shortcut_generator.generate_shortcuts(v, 10);
+            let shortcut_generator = ContractionHelper::new(&self.graph, 10);
+            let mut this_shortcuts = shortcut_generator.generate_shortcuts(v);
 
             self.add_shortcuts(&this_shortcuts);
             shortcuts.append(&mut this_shortcuts);
@@ -96,10 +96,10 @@ impl Contractor {
 
         let mut level = 0;
         while let Some(node_set) = self.queue.pop_vec(&self.graph) {
-            let shortcut_generator = ContractionHelper::new(&self.graph);
+            let shortcut_generator = ContractionHelper::new(&self.graph, 10);
             let mut this_shortcuts = node_set
                 .par_iter()
-                .map(|&v| shortcut_generator.generate_shortcuts(v, 10))
+                .map(|&v| shortcut_generator.generate_shortcuts(v))
                 .flatten()
                 .collect::<Vec<_>>();
 

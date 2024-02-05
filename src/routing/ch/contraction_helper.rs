@@ -8,11 +8,15 @@ use super::binary_heap::MinimumItem;
 
 pub struct ContractionHelper<'a> {
     graph: &'a Graph,
+    max_hops_in_witness_search: u32,
 }
 
 impl<'a> ContractionHelper<'a> {
-    pub fn new(graph: &'a Graph) -> Self {
-        Self { graph }
+    pub fn new(graph: &'a Graph, max_hops_in_witness_search: u32) -> Self {
+        Self {
+            graph,
+            max_hops_in_witness_search,
+        }
     }
 
     /// Generates shortcuts for a node v.
@@ -22,11 +26,7 @@ impl<'a> ContractionHelper<'a> {
     ///
     /// Returns a vector of (Edge, Vec<Edge>) where the first entry is the shortcut and the second
     /// entry the edges the shortcut replaces.
-    pub fn generate_shortcuts(
-        &self,
-        v: u32,
-        max_hops_in_witness_search: u32,
-    ) -> Vec<(DirectedWeightedEdge, VertexId)> {
+    pub fn generate_shortcuts(&self, v: u32) -> Vec<(DirectedWeightedEdge, VertexId)> {
         let uv_edges = &self.graph.in_edges[v as usize];
         let vw_edges = &self.graph.out_edges[v as usize];
         let max_vw_cost = vw_edges.iter().map(|edge| edge.cost).max().unwrap_or(0);
@@ -36,18 +36,16 @@ impl<'a> ContractionHelper<'a> {
             .par_bridge()
             .flat_map(|uv_edge| {
                 let mut shortcuts = Vec::new();
-                let u = uv_edge.tail;
 
                 let max_cost = uv_edge.cost + max_vw_cost;
-                let witness_cost = self.witness_search(u, v, max_cost, max_hops_in_witness_search);
+                let witness_cost = self.witness_search(uv_edge.tail, v, max_cost);
 
                 for vw_ede in vw_edges.iter() {
-                    let w = vw_ede.head;
                     let uw_cost = uv_edge.cost + vw_ede.cost;
-                    if &uw_cost < witness_cost.get(&w).unwrap_or(&u32::MAX) {
+                    if &uw_cost < witness_cost.get(&vw_ede.head).unwrap_or(&u32::MAX) {
                         let edge = DirectedWeightedEdge {
-                            tail: u,
-                            head: w,
+                            tail: uv_edge.tail,
+                            head: vw_ede.head,
                             cost: uw_cost,
                         };
                         shortcuts.push((edge, v));
@@ -74,7 +72,6 @@ impl<'a> ContractionHelper<'a> {
         source: VertexId,
         without: VertexId,
         max_cost: u32,
-        max_hops: u32,
     ) -> HashMap<u32, u32> {
         let mut queue = BinaryHeap::new();
         let mut cost = HashMap::new();
@@ -93,7 +90,7 @@ impl<'a> ContractionHelper<'a> {
                 let new_hops = hops[&node] + 1;
                 if (edge.head != without)
                     && (alternative_cost <= max_cost)
-                    && (new_hops <= max_hops)
+                    && (new_hops <= self.max_hops_in_witness_search)
                 {
                     let current_cost = *cost.get(&edge.head).unwrap_or(&u32::MAX);
                     if alternative_cost < current_cost {

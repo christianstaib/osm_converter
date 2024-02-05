@@ -59,7 +59,7 @@ impl Graph {
     ///
     /// # Returns
     /// A `HashSet<u32>` containing all vertices that are within `hops` hops from or to the `vertex`.
-    pub fn get_neighborhood(&self, vertex: u32, hops: u32) -> HashSet<u32> {
+    pub fn get_neighborhood(&self, vertex: VertexId, hops: u32) -> HashSet<u32> {
         let mut neighbors = HashSet::new();
         neighbors.insert(vertex);
 
