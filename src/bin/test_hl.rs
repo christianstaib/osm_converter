@@ -29,7 +29,7 @@ fn main() {
     let args = Args::parse();
 
     let graph = NaiveGraph::from_file(args.fmi_path.as_str());
-    let graph = Graph::from_naive_graph(&graph);
+    let graph = Graph::from_edges(&graph.edges);
 
     let reader = BufReader::new(File::open(args.test_path.as_str()).unwrap());
     let tests: Vec<RouteValidationRequest> = serde_json::from_reader(reader).unwrap();

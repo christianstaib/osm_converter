@@ -15,7 +15,7 @@ impl PriorityTerm for CostOfQueries {
     #[allow(unused_variables)]
     fn update_before_contraction(&mut self, v: u32, graph: &Graph) {
         let v_cost = self.costs[v as usize] + 1;
-        for neighbor in graph.get_neighborhood(v, 1) {
+        for neighbor in graph.neighborhood(v, 1) {
             self.costs[neighbor as usize] = std::cmp::max(self.costs[neighbor as usize], v_cost);
         }
     }

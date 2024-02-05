@@ -26,7 +26,7 @@ fn main() {
     let args = Args::parse();
 
     let naive_graph = NaiveGraph::from_file(args.fmi_path.as_str());
-    let mut graph = Graph::from_naive_graph(&naive_graph);
+    let mut graph = Graph::from_edges(&naive_graph.edges);
     removing_double_edges(&mut graph);
     remove_edge_to_self(&mut graph);
 

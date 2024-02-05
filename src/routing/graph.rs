@@ -9,15 +9,6 @@ use super::{
     types::VertexId,
 };
 
-/// Represents a directed graph where each node's incoming and outgoing edges are easily accessible.
-///
-/// This struct is designed to facilitate easy access to the neighborhood of nodes in a graph.
-/// It stores edges in two vectors: `in_edges` and `out_edges`, representing incoming and outgoing edges, respectively.
-///
-/// For each directed edge `v -> w`:
-/// - It is stored in `out_edges[v]`, allowing quick access to all successors of `v` (nodes that `v` points to).
-/// - It is also stored in `in_edges[w]`, enabling efficient access to all predecessors of `w` (nodes that point to `w`).
-///
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Graph {
     pub out_edges: Vec<Vec<DirectedTaillessWeightedEdge>>,
@@ -38,27 +29,42 @@ impl Graph {
         }
     }
 
-    pub fn from_naive_graph(naive_graph: &NaiveGraph) -> Graph {
+    pub fn from_edges(edges: &[DirectedWeightedEdge]) -> Graph {
         let mut graph = Graph::new();
-        naive_graph.edges.iter().for_each(|edge| {
+        edges.iter().for_each(|edge| {
             graph.add_edge(edge);
         });
-
         graph
     }
 
-    pub fn get_neighborhood(&self, vertex: VertexId, hops: u32) -> HashSet<u32> {
+    pub fn out_neighborhood(&self, vertex: VertexId) -> HashSet<VertexId> {
+        self.out_edges[vertex as usize]
+            .iter()
+            .map(|edge| edge.head)
+            .collect()
+    }
+
+    pub fn in_neighborhood(&self, vertex: VertexId) -> HashSet<VertexId> {
+        self.in_edges[vertex as usize]
+            .iter()
+            .map(|edge| edge.tail)
+            .collect()
+    }
+
+    pub fn neighborhood(&self, vertex: VertexId, hops: u32) -> HashSet<VertexId> {
         let mut neighbors = HashSet::new();
         neighbors.insert(vertex);
 
         for _ in 0..hops {
             let mut new_neighbors = HashSet::new();
-            for &node in neighbors.iter() {
-                new_neighbors.extend(self.out_edges[node as usize].iter().map(|edge| edge.head));
-                new_neighbors.extend(self.in_edges[node as usize].iter().map(|edge| edge.tail));
+            for &vertex in neighbors.iter() {
+                new_neighbors.extend(self.out_neighborhood(vertex));
+                new_neighbors.extend(self.in_neighborhood(vertex));
             }
             neighbors.extend(new_neighbors);
         }
+
+        neighbors.remove(&vertex);
 
         neighbors
     }

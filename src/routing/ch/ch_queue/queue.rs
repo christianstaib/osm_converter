@@ -88,7 +88,7 @@ impl CHQueue {
             }
 
             self.update_before_contraction(state.node_id, graph);
-            neighbors.extend(graph.get_neighborhood(state.node_id, 2));
+            neighbors.extend(graph.neighborhood(state.node_id, 2));
             node_set.push(state.node_id);
         }
 

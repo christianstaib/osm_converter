@@ -45,7 +45,7 @@ async fn main() {
     println!("Loading graph from file");
     let time = Instant::now();
     let naive_graph = NaiveGraph::from_file(args.fmi_path.as_str());
-    let graph = Graph::from_naive_graph(&naive_graph);
+    let graph = Graph::from_edges(&naive_graph.edges);
     let graph = FastGraph::from_graph(&graph);
     let graph = Arc::new(graph);
     let fmi = Arc::new(Fmi::from_file(args.fmi_path.as_str()));

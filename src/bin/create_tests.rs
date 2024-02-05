@@ -31,7 +31,7 @@ fn main() {
     let args = Args::parse();
 
     let graph = NaiveGraph::from_file(args.fmi_path.as_str());
-    let graph = Graph::from_naive_graph(&graph);
+    let graph = Graph::from_edges(&graph.edges);
     let graph = FastGraph::from_graph(&graph);
     let dijkstra = Dijkstra::new(&graph);
 
