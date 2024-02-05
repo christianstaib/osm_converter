@@ -134,8 +134,12 @@ impl Contractor {
                 edges.retain(|edge| self.levels[edge.head as usize] >= self.levels[tail as usize]);
             });
 
-        self.graph.in_edges.iter_mut().for_each(|edges| {
-            edges.retain(|edge| self.levels[edge.head as usize] <= self.levels[edge.tail as usize]);
-        });
+        self.graph
+            .in_edges
+            .iter_mut()
+            .enumerate()
+            .for_each(|(head, edges)| {
+                edges.retain(|edge| self.levels[head as usize] <= self.levels[edge.tail as usize]);
+            });
     }
 }

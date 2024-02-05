@@ -50,7 +50,7 @@ pub struct DirectedTaillessWeightedEdge {
     pub cost: u32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DirectedHeadlessWeightedEdge {
     pub tail: VertexId,
     pub cost: u32,

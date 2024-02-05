@@ -40,14 +40,14 @@ pub struct FastInEdgeAccess {
 }
 
 impl FastInEdgeAccess {
-    pub fn new(edges: &[Vec<DirectedWeightedEdge>]) -> FastInEdgeAccess {
+    pub fn new(edges: &[Vec<DirectedHeadlessWeightedEdge>]) -> FastInEdgeAccess {
         let mut edges_start_at = vec![0];
 
         for edges in edges.iter() {
             edges_start_at.push(edges_start_at.last().unwrap() + edges.len() as u32);
         }
 
-        let edges = edges.iter().flatten().map(|edge| edge.headless()).collect();
+        let edges = edges.iter().flatten().cloned().collect();
 
         FastInEdgeAccess {
             edges,

@@ -26,16 +26,15 @@ pub fn removing_double_edges(graph: &mut Graph) {
             .retain(|edge| edge.cost <= *edge_map.get(&(edge.head, tail)).unwrap());
     }
 
-    for i in 0..graph.in_edges.len() {
+    for head in 0..graph.in_edges.len() {
         let mut edge_map = HashMap::new();
-        for edge in &graph.in_edges[i] {
-            let edge_tuple = (edge.head, edge.tail);
+        for edge in &graph.in_edges[head] {
+            let edge_tuple = (head, edge.tail);
             let current_cost = edge_map.get(&edge_tuple).unwrap_or(&u32::MAX);
             if &edge.cost < current_cost {
                 edge_map.insert(edge_tuple, edge.cost);
             }
         }
-        graph.in_edges[i]
-            .retain(|edge| edge.cost <= *edge_map.get(&(edge.head, edge.tail)).unwrap());
+        graph.in_edges[head].retain(|edge| edge.cost <= *edge_map.get(&(head, edge.tail)).unwrap());
     }
 }

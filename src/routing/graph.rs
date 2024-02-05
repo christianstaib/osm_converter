@@ -3,7 +3,7 @@ use std::{collections::HashSet, usize};
 use serde_derive::{Deserialize, Serialize};
 
 use super::{
-    edge::{DirectedTaillessWeightedEdge, DirectedWeightedEdge},
+    edge::{DirectedHeadlessWeightedEdge, DirectedTaillessWeightedEdge, DirectedWeightedEdge},
     naive_graph::NaiveGraph,
     route::{Route, RouteRequest},
     types::VertexId,
@@ -21,7 +21,7 @@ use super::{
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Graph {
     pub out_edges: Vec<Vec<DirectedTaillessWeightedEdge>>,
-    pub in_edges: Vec<Vec<DirectedWeightedEdge>>,
+    pub in_edges: Vec<Vec<DirectedHeadlessWeightedEdge>>,
 }
 
 impl Default for Graph {
@@ -85,7 +85,7 @@ impl Graph {
         if (self.in_edges.len() as u32) <= edge.head {
             self.in_edges.resize((edge.head + 1) as usize, Vec::new());
         }
-        self.in_edges[edge.head as usize].push(edge.clone());
+        self.in_edges[edge.head as usize].push(edge.headless());
     }
 
     /// Removes an edge from the graph.
@@ -95,7 +95,7 @@ impl Graph {
         }
 
         if let Some(in_edges) = self.in_edges.get_mut(edge.head as usize) {
-            in_edges.retain(|in_edge| in_edge != edge);
+            in_edges.retain(|in_edge| in_edge.tail != edge.tail);
         }
     }
 
