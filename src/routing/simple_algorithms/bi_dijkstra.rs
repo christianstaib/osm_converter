@@ -2,6 +2,7 @@ use crate::routing::{
     dijkstra_data::DijkstraData,
     fast_graph::FastGraph,
     route::{Route, RouteRequest, RouteResponse, Routing},
+    types::VertexId,
 };
 
 #[derive(Clone)]
@@ -87,21 +88,10 @@ impl<'a> BiDijkstra<'a> {
 }
 
 fn construct_route(
-    _contact_node: u32,
+    contact_node: VertexId,
     forward_data: &DijkstraData,
     backward_data: &DijkstraData,
 ) -> Option<Route> {
-    let contact_node = forward_data
-        .nodes
-        .iter()
-        .zip(backward_data.nodes.iter())
-        .enumerate()
-        .min_by_key(|(_, (forward, backward))| {
-            forward.cost.checked_add(backward.cost).unwrap_or(u32::MAX)
-        })
-        .unwrap()
-        .0 as u32;
-
     let mut forward_route = forward_data.get_route(contact_node)?;
     let mut backward_route = backward_data.get_route(contact_node)?;
     backward_route.nodes.pop();
