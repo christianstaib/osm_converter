@@ -41,12 +41,16 @@ impl<'a> BiDijkstra<'a> {
         let mut minimal_cost = u32::MAX;
         let mut minimal_cost_vertex = u32::MAX;
 
-        loop {
+        while !forward_data.is_empty() || !backward_data.is_empty() {
             let forward_state = forward_data.pop();
             if let Some(forward_state) = forward_state {
-                if backward_data.verticies[forward_state.value as usize].is_expanded {
-                    let contact_cost = forward_data.verticies[forward_state.value as usize].cost
-                        + backward_data.verticies[forward_state.value as usize].cost;
+                if let Some(backward_cost) =
+                    backward_data.verticies[forward_state.value as usize].cost
+                {
+                    let contact_cost = forward_data.verticies[forward_state.value as usize]
+                        .cost
+                        .unwrap()
+                        + backward_cost;
                     if contact_cost < minimal_cost {
                         minimal_cost = contact_cost;
                         minimal_cost_vertex = forward_state.value;
@@ -63,11 +67,17 @@ impl<'a> BiDijkstra<'a> {
             let backward_state = backward_data.pop();
             if let Some(backward_state) = backward_state {
                 if forward_data.verticies[backward_state.value as usize].is_expanded {
-                    let contact_cost = forward_data.verticies[backward_state.value as usize].cost
-                        + backward_data.verticies[backward_state.value as usize].cost;
-                    if contact_cost < minimal_cost {
-                        minimal_cost = contact_cost;
-                        minimal_cost_vertex = backward_state.value;
+                    if let Some(forward_cost) =
+                        forward_data.verticies[backward_state.value as usize].cost
+                    {
+                        let contact_cost = forward_cost
+                            + backward_data.verticies[backward_state.value as usize]
+                                .cost
+                                .unwrap();
+                        if contact_cost < minimal_cost {
+                            minimal_cost = contact_cost;
+                            minimal_cost_vertex = backward_state.value;
+                        }
                     }
                 }
                 self.graph
@@ -76,10 +86,6 @@ impl<'a> BiDijkstra<'a> {
                     .for_each(|edge| {
                         backward_data.update(backward_state.value, edge.tail, edge.cost);
                     });
-            }
-
-            if forward_state.is_none() && backward_state.is_none() {
-                break;
             }
         }
 
