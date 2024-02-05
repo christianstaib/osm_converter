@@ -6,8 +6,6 @@ use super::{
 };
 
 #[derive(Clone)]
-/// Gives fast access to predecessor and successor in a graph.
-/// As FastGraph uses FastEdgeAccess, an out_edges head is acutally its tail.
 pub struct FastGraph {
     pub num_nodes: u32,
     pub out_edges: FastOutEdgeAccess,

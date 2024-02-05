@@ -47,18 +47,6 @@ impl Graph {
         graph
     }
 
-    /// Retrieves the set of vertices reachable from and leading to `vertex` within a specified number of `hops`.
-    /// This includes the `vertex` itself.
-    ///
-    /// The function explores the graph in both directions - following outgoing edges (successors) and incoming edges (predecessors).
-    /// It does this iteratively for the number of hops specified, aggregating all the vertices encountered in this process.
-    ///
-    /// # Arguments
-    /// * `vertex`: The starting vertex from which the neighborhood is calculated.
-    /// * `hops`: The number of hops within which vertices are considered part of the neighborhood.
-    ///
-    /// # Returns
-    /// A `HashSet<u32>` containing all vertices that are within `hops` hops from or to the `vertex`.
     pub fn get_neighborhood(&self, vertex: VertexId, hops: u32) -> HashSet<u32> {
         let mut neighbors = HashSet::new();
         neighbors.insert(vertex);
