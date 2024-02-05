@@ -28,7 +28,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let graph = NaiveGraph::from_file(args.fmi_path.as_str());
+    let graph = NaiveGraph::from_fmi_file(args.fmi_path.as_str());
     let graph = Graph::from_edges(&graph.edges);
 
     let reader = BufReader::new(File::open(args.test_path.as_str()).unwrap());

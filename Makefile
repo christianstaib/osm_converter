@@ -38,12 +38,6 @@ server:
 	cargo run --bin server --release  --\
 		--fmi-path tests/data/fmi/network.fmi
 
-test:
-	cargo run --bin test --release --\
-		--fmi-path tests/data/fmi/network.fmi\
-		--tests-path tests/data/fmi/tests.json\
-		--number-of-tests $(NUM_TESTS)
-
 test_queue_sol:
 	cargo run --bin test_queue_sol --release --\
 		--fmi-path $(STGT_FMI)\
@@ -51,6 +45,13 @@ test_queue_sol:
 		--fmi-hl-path $(STGT_HUBS_PRUNED)\
 		--queue-path ~/Downloads/Benchs/stgtregbz.que\
 		--sol-path ~/Downloads/Benchs/stgtregbz.sol
+
+test:
+	cargo run --bin test --release --\
+		--fmi-path $(STGT_FMI)\
+		--fmi-ch-path $(STGT_CONTRACTED)\
+		--fmi-hl-path $(STGT_HUBS_PRUNED)\
+		--tests-path $(STGT_TESTS_JSON)
 
 
 download:

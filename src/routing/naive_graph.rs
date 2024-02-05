@@ -1,6 +1,6 @@
 use std::{
     fs::File,
-    io::{self, BufRead},
+    io::{BufRead, BufReader},
 };
 
 use crate::sphere::geometry::point::Point;
@@ -14,9 +14,9 @@ pub struct NaiveGraph {
 }
 
 impl NaiveGraph {
-    pub fn from_file(filename: &str) -> NaiveGraph {
+    pub fn from_fmi_file(filename: &str) -> NaiveGraph {
         let file = File::open(filename).unwrap();
-        let reader = io::BufReader::new(file);
+        let reader = BufReader::new(file);
 
         let mut lines = reader.lines();
         let number_of_nodes: usize = lines.by_ref().next().unwrap().unwrap().parse().unwrap();
@@ -51,6 +51,32 @@ impl NaiveGraph {
                 values.next();
                 values.next();
                 DirectedWeightedEdge::new(tail, head, cost)
+            })
+            .collect();
+
+        NaiveGraph { nodes, edges }
+    }
+
+    pub fn from_gr_file(filename: &str) -> NaiveGraph {
+        let file = File::open(filename).unwrap();
+        let reader = BufReader::new(file);
+
+        let nodes = Vec::new();
+
+        let edges: Vec<_> = reader
+            .lines()
+            .filter_map(|edge_line| {
+                // srcIDX trgIDX cost type maxspeed
+                let line = edge_line.unwrap();
+                let mut values = line.split_whitespace();
+                let line_type = values.next().unwrap();
+                if line_type != "a" {
+                    return None;
+                }
+                let tail: u32 = values.next().unwrap().parse().unwrap();
+                let head: u32 = values.next().unwrap().parse().unwrap();
+                let cost: u32 = values.next().unwrap().parse().unwrap();
+                Some(DirectedWeightedEdge::new(tail, head, cost))
             })
             .collect();
 

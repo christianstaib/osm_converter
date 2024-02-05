@@ -30,7 +30,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let graph = NaiveGraph::from_file(args.fmi_path.as_str());
+    let graph = NaiveGraph::from_fmi_file(args.fmi_path.as_str());
     let graph = Graph::from_edges(&graph.edges);
     let graph = FastGraph::from_graph(&graph);
     let dijkstra = Dijkstra::new(&graph);
@@ -56,6 +56,6 @@ fn main() {
         .collect();
 
     let mut writer = BufWriter::new(File::create(args.tests_path.as_str()).unwrap());
-    serde_json::to_writer(&mut writer, &routes).unwrap();
+    serde_json::to_writer_pretty(&mut writer, &routes).unwrap();
     writer.flush().unwrap();
 }
