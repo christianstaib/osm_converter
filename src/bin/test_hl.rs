@@ -35,7 +35,7 @@ fn main() {
     let tests: Vec<RouteValidationRequest> = serde_json::from_reader(reader).unwrap();
 
     let reader = BufReader::new(File::open(args.hub_graph).unwrap());
-    let mut hub_graph: HubGraph = bincode::deserialize_from(reader).unwrap();
+    let hub_graph: HubGraph = bincode::deserialize_from(reader).unwrap();
 
     println!("avg label size is {}", hub_graph.get_avg_label_size());
 

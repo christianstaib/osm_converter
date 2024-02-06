@@ -8,7 +8,10 @@ use rayon::{
 use serde_derive::{Deserialize, Serialize};
 use serde_json::map::Entry;
 
-use crate::routing::{edge::DirectedEdge, types::VertexId};
+use crate::routing::{
+    edge::DirectedEdge,
+    types::{VertexId, Weight},
+};
 
 use super::label_entry::LabelEntry;
 
@@ -69,20 +72,20 @@ impl Label {
             .par_iter()
             .filter(|entry| {
                 let backward_label = backward_labels.get(entry.id as usize).unwrap();
-                let true_cost = self.get_cost(backward_label).unwrap();
+                let true_cost = Self::get_weight(self, backward_label).unwrap();
                 entry.cost == true_cost
             })
             .cloned()
             .collect();
     }
 
-    pub fn prune_backward(&mut self, forward_label: &Vec<Label>) {
+    pub fn prune_backward(&mut self, forward_labels: &Vec<Label>) {
         self.entries = self
             .entries
             .par_iter()
             .filter(|entry| {
-                let forward_label = forward_label.get(entry.id as usize).unwrap();
-                let true_cost = self.get_cost(forward_label).unwrap();
+                let forward_label = forward_labels.get(entry.id as usize).unwrap();
+                let true_cost = Self::get_weight(forward_label, self).unwrap();
                 entry.cost == true_cost
             })
             .cloned()
@@ -117,10 +120,10 @@ impl Label {
     }
 
     // cost, route_with_shortcuts
-    pub fn get_route(&self, other: &Label) -> Option<(u32, Vec<u32>)> {
-        let (cost, i_self, i_other) = self.get_idx(other)?;
-        let mut f_route = self.get_subroute(i_self);
-        let b_route = other.get_subroute(i_other);
+    pub fn get_path(forward: &Label, reverse: &Label) -> Option<(u32, Vec<u32>)> {
+        let (cost, forward_self, reverse_other) = Self::get_overlap(forward, reverse)?;
+        let mut f_route = forward.get_subroute(forward_self);
+        let b_route = reverse.get_subroute(reverse_other);
 
         if f_route.first() == b_route.first() {
             f_route.remove(0);
@@ -132,68 +135,33 @@ impl Label {
         Some((cost, f_route))
     }
 
-    pub fn get_cost(&self, other: &Label) -> Option<u32> {
-        Some(self.get_idx(other)?.0)
+    pub fn get_weight(forward: &Label, reverse: &Label) -> Option<u32> {
+        let (weight, _, _) = Self::get_overlap(forward, reverse)?;
+        Some(weight)
     }
 
     /// cost, i_self, i_other
-    pub fn get_idx(&self, backward: &Label) -> Option<(u32, u32, u32)> {
-        let mut i_self = 0;
-        let mut i_other = 0;
-
-        let mut cost = u32::MAX;
-        let mut min_i_self = 0;
-        let mut min_i_other = 0;
-
-        while i_self < self.entries.len() && i_other < backward.entries.len() {
-            let self_entry = &self.entries[i_self];
-            let other_entry = &backward.entries[i_other];
-
-            match self_entry.id.cmp(&other_entry.id) {
-                std::cmp::Ordering::Less => i_self += 1,
-                std::cmp::Ordering::Equal => {
-                    let alternative_cost = self_entry.cost + other_entry.cost;
-                    if alternative_cost < cost {
-                        cost = alternative_cost;
-                        min_i_self = i_self;
-                        min_i_other = i_other;
-                    }
-
-                    i_self += 1;
-                    i_other += 1;
-                }
-                std::cmp::Ordering::Greater => i_other += 1,
-            }
-        }
-
-        if cost != u32::MAX {
-            return Some((cost, min_i_self as u32, min_i_other as u32));
-        }
-
-        None
-    }
-
-    /// cost, i_self, i_other
-    pub fn get_overlapp(forward: Label, reverse: &Label) -> Option<(u32, u32, u32)> {
+    pub fn get_overlap(forward: &Label, reverse: &Label) -> Option<(Weight, u32, u32)> {
         let mut i_forward = 0;
         let mut i_reverse = 0;
 
-        let mut min_cost = u32::MAX;
-        let mut min_i_forward = 0;
-        let mut min_i_reverse = 0;
+        let mut overlap_weight = None;
+        let mut overlap_i_forward = 0;
+        let mut overlap_i_reverse = 0;
 
         while i_forward < forward.entries.len() && i_reverse < reverse.entries.len() {
-            let self_entry = &forward.entries[i_forward];
-            let other_entry = &reverse.entries[i_reverse];
+            let forward_entry = &forward.entries[i_forward];
+            let reverse_entry = &reverse.entries[i_reverse];
 
-            match self_entry.id.cmp(&other_entry.id) {
+            match forward_entry.id.cmp(&reverse_entry.id) {
                 std::cmp::Ordering::Less => i_forward += 1,
                 std::cmp::Ordering::Equal => {
-                    let alternative_cost = self_entry.cost + other_entry.cost;
-                    if alternative_cost < min_cost {
-                        min_cost = alternative_cost;
-                        min_i_forward = i_forward;
-                        min_i_reverse = i_reverse;
+                    let alternative_weight =
+                        forward_entry.cost.checked_add(reverse_entry.cost).unwrap();
+                    if alternative_weight < overlap_weight.unwrap_or(u32::MAX) {
+                        overlap_weight = Some(alternative_weight);
+                        overlap_i_forward = i_forward;
+                        overlap_i_reverse = i_reverse;
                     }
 
                     i_forward += 1;
@@ -203,8 +171,12 @@ impl Label {
             }
         }
 
-        if min_cost != u32::MAX {
-            return Some((min_cost, min_i_forward as u32, min_i_reverse as u32));
+        if let Some(min_weight) = overlap_weight {
+            return Some((
+                min_weight,
+                overlap_i_forward as u32,
+                overlap_i_reverse as u32,
+            ));
         }
 
         None

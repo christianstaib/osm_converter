@@ -97,13 +97,13 @@ impl HubGraph {
     pub fn get_cost(&self, request: &PathRequest) -> Option<u32> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
         let backward_label = self.backward_labels.get(request.target as usize)?;
-        forward_label.get_cost(backward_label)
+        Label::get_weight(forward_label, backward_label)
     }
 
     pub fn get_route(&self, request: &PathRequest) -> Option<Path> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
         let backward_label = self.backward_labels.get(request.target as usize)?;
-        let (cost, mut route_with_shortcuts) = forward_label.get_route(backward_label)?;
+        let (cost, mut route_with_shortcuts) = Label::get_path(forward_label, backward_label)?;
         let mut route = Vec::new();
 
         while route_with_shortcuts.len() >= 2 {
