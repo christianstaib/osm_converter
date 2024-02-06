@@ -91,7 +91,7 @@ impl ChDijkstra {
 
         HubGraph {
             forward_labels: out_labels,
-            backward_labels: in_labels,
+            reverse_labels: in_labels,
             shortcuts: self.shortcuts.clone(),
         }
     }

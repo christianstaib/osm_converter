@@ -18,31 +18,26 @@ use super::label::Label;
 #[derive(Serialize, Deserialize)]
 pub struct HubGraph {
     pub forward_labels: Vec<Label>,
-    pub backward_labels: Vec<Label>,
+    pub reverse_labels: Vec<Label>,
     pub shortcuts: HashMap<DirectedEdge, u32>,
 }
 
 impl HubGraph {
     pub fn new(dijkstra: &ChDijkstra, depth_limit: u32) -> HubGraph {
-        let style =
-            ProgressStyle::with_template("{wide_bar} {human_pos}/{human_len} {eta_precise}")
-                .unwrap();
-        let pb = ProgressBar::new((dijkstra.graph.num_nodes() * 2) as u64);
-        pb.set_style(style);
         let forward_labels = (0..dijkstra.graph.num_nodes())
             .into_par_iter()
-            .progress_with(pb.clone())
+            .progress()
             .map(|id| Label::new(&dijkstra.get_forward_label(id, depth_limit)))
             .collect();
-        pb.set_position(dijkstra.graph.num_nodes() as u64);
-        let backward_labels = (0..dijkstra.graph.num_nodes())
+        let reverse_labels = (0..dijkstra.graph.num_nodes())
             .into_par_iter()
-            .progress_with(pb)
+            .progress()
             .map(|id| Label::new(&dijkstra.get_backward_label(id, depth_limit)))
             .collect();
+
         HubGraph {
             forward_labels,
-            backward_labels,
+            reverse_labels,
             shortcuts: dijkstra.shortcuts.clone(),
         }
     }
@@ -54,7 +49,7 @@ impl HubGraph {
             .map(|label| label.entries.len() as u64)
             .sum::<u64>()
             + self
-                .backward_labels
+                .reverse_labels
                 .iter()
                 .map(|label| label.entries.len() as u64)
                 .sum::<u64>();
@@ -64,51 +59,54 @@ impl HubGraph {
     pub fn set_predecessor(&mut self) {
         self.forward_labels
             .par_iter_mut()
-            .chain(self.backward_labels.par_iter_mut())
+            .chain(self.reverse_labels.par_iter_mut())
             .progress()
             .for_each(|label| label.set_predecessor());
     }
 
     pub fn get_cost(&self, request: &PathRequest) -> Option<u32> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
-        let backward_label = self.backward_labels.get(request.target as usize)?;
+        let backward_label = self.reverse_labels.get(request.target as usize)?;
         Self::get_weight(forward_label, backward_label)
     }
 
     pub fn get_route(&self, request: &PathRequest) -> Option<Path> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
-        let backward_label = self.backward_labels.get(request.target as usize)?;
-        let (cost, mut route_with_shortcuts) = Self::get_path(forward_label, backward_label)?;
-        let mut route = Vec::new();
+        let backward_label = self.reverse_labels.get(request.target as usize)?;
+        let mut path_with_shortcuts = Self::get_path_with_shortcuts(forward_label, backward_label)?;
 
-        while route_with_shortcuts.len() >= 2 {
-            let last_num = route_with_shortcuts.pop().unwrap();
-            let second_last_num = *route_with_shortcuts.last().unwrap();
+        let mut path = Path {
+            verticies: Vec::new(),
+            cost: path_with_shortcuts.cost,
+        };
+
+        while path_with_shortcuts.verticies.len() >= 2 {
+            let last_num = path_with_shortcuts.verticies.pop().unwrap();
+            let second_last_num = *path_with_shortcuts.verticies.last().unwrap();
             let last = DirectedEdge {
                 tail: second_last_num,
                 head: last_num,
             };
             if let Some(&middle_node) = self.shortcuts.get(&last) {
-                route_with_shortcuts.extend([middle_node, last.head]);
+                path_with_shortcuts
+                    .verticies
+                    .extend([middle_node, last.head]);
             } else {
-                route.push(last.head);
+                path.verticies.push(last.head);
             }
         }
 
-        route.push(route_with_shortcuts[0]);
-        route.reverse();
+        path.verticies.push(path_with_shortcuts.verticies[0]);
+        path.verticies.reverse();
 
-        Some(Path {
-            verticies: route,
-            cost,
-        })
+        Some(path)
     }
 
     // cost, route_with_shortcuts
-    pub fn get_path(forward: &Label, reverse: &Label) -> Option<(u32, Vec<u32>)> {
-        let (cost, forward_self, reverse_other) = Self::get_overlap(forward, reverse)?;
-        let mut f_route = forward.get_path(forward_self);
-        let b_route = reverse.get_path(reverse_other);
+    pub fn get_path_with_shortcuts(forward: &Label, reverse: &Label) -> Option<Path> {
+        let (cost, forward_idx, reverse_idx) = Self::get_overlap(forward, reverse)?;
+        let mut f_route = forward.get_path(forward_idx);
+        let b_route = reverse.get_path(reverse_idx);
 
         if f_route.first() == b_route.first() {
             f_route.remove(0);
@@ -117,7 +115,10 @@ impl HubGraph {
         f_route.reverse();
         f_route.extend(b_route);
 
-        Some((cost, f_route))
+        Some(Path {
+            verticies: f_route,
+            cost,
+        })
     }
 
     pub fn get_weight(forward: &Label, reverse: &Label) -> Option<u32> {
