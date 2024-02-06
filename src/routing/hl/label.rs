@@ -137,7 +137,7 @@ impl Label {
     }
 
     /// cost, i_self, i_other
-    pub fn get_idx(&self, other: &Label) -> Option<(u32, u32, u32)> {
+    pub fn get_idx(&self, backward: &Label) -> Option<(u32, u32, u32)> {
         let mut i_self = 0;
         let mut i_other = 0;
 
@@ -145,9 +145,9 @@ impl Label {
         let mut min_i_self = 0;
         let mut min_i_other = 0;
 
-        while i_self < self.entries.len() && i_other < other.entries.len() {
+        while i_self < self.entries.len() && i_other < backward.entries.len() {
             let self_entry = &self.entries[i_self];
-            let other_entry = &other.entries[i_other];
+            let other_entry = &backward.entries[i_other];
 
             match self_entry.id.cmp(&other_entry.id) {
                 std::cmp::Ordering::Less => i_self += 1,
@@ -168,6 +168,43 @@ impl Label {
 
         if cost != u32::MAX {
             return Some((cost, min_i_self as u32, min_i_other as u32));
+        }
+
+        None
+    }
+
+    /// cost, i_self, i_other
+    pub fn get_overlapp(forward: Label, reverse: &Label) -> Option<(u32, u32, u32)> {
+        let mut i_forward = 0;
+        let mut i_reverse = 0;
+
+        let mut min_cost = u32::MAX;
+        let mut min_i_forward = 0;
+        let mut min_i_reverse = 0;
+
+        while i_forward < forward.entries.len() && i_reverse < reverse.entries.len() {
+            let self_entry = &forward.entries[i_forward];
+            let other_entry = &reverse.entries[i_reverse];
+
+            match self_entry.id.cmp(&other_entry.id) {
+                std::cmp::Ordering::Less => i_forward += 1,
+                std::cmp::Ordering::Equal => {
+                    let alternative_cost = self_entry.cost + other_entry.cost;
+                    if alternative_cost < min_cost {
+                        min_cost = alternative_cost;
+                        min_i_forward = i_forward;
+                        min_i_reverse = i_reverse;
+                    }
+
+                    i_forward += 1;
+                    i_reverse += 1;
+                }
+                std::cmp::Ordering::Greater => i_reverse += 1,
+            }
+        }
+
+        if min_cost != u32::MAX {
+            return Some((min_cost, min_i_forward as u32, min_i_reverse as u32));
         }
 
         None

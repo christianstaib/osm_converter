@@ -68,7 +68,6 @@ impl ChDijkstra {
                         .entries
                         .extend(head_label_entries);
                 }
-
                 out_labels[*vertex as usize].sort_and_clean();
                 out_labels[*vertex as usize].prune_forward(&in_labels);
 

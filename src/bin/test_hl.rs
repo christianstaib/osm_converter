@@ -39,9 +39,6 @@ fn main() {
 
     println!("avg label size is {}", hub_graph.get_avg_label_size());
 
-    hub_graph.set_predecessor();
-    println!("set_predecessor");
-
     let mut time_hl = Vec::new();
     tests.iter().progress().for_each(|test| {
         let start = Instant::now();
