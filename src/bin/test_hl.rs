@@ -42,7 +42,7 @@ fn main() {
     let mut time_hl = Vec::new();
     tests.iter().progress().for_each(|test| {
         let start = Instant::now();
-        let route = hub_graph.get_cost(&test.request);
+        let route = hub_graph.get_weight(&test.request);
         time_hl.push(start.elapsed());
 
         // let mut cost = None;

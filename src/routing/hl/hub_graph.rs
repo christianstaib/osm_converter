@@ -40,16 +40,17 @@ impl HubGraph {
             .for_each(|label| label.set_predecessor());
     }
 
-    pub fn get_cost(&self, request: &PathRequest) -> Option<u32> {
+    pub fn get_weight(&self, request: &PathRequest) -> Option<u32> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
         let backward_label = self.reverse_labels.get(request.target as usize)?;
-        Self::get_weight(forward_label, backward_label)
+
+        Self::get_weight_labels(forward_label, backward_label)
     }
 
     pub fn get_route(&self, request: &PathRequest) -> Option<Path> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
         let backward_label = self.reverse_labels.get(request.target as usize)?;
-        let mut path_with_shortcuts = Self::get_path_with_shortcuts(forward_label, backward_label)?;
+        let path_with_shortcuts = Self::get_path_with_shortcuts(forward_label, backward_label)?;
 
         Some(self.shortcut_replacer.get_route(&path_with_shortcuts))
     }
@@ -57,23 +58,23 @@ impl HubGraph {
     // cost, route_with_shortcuts
     pub fn get_path_with_shortcuts(forward: &Label, reverse: &Label) -> Option<Path> {
         let (cost, forward_idx, reverse_idx) = Self::get_overlap(forward, reverse)?;
-        let mut f_route = forward.get_path(forward_idx);
-        let b_route = reverse.get_path(reverse_idx);
+        let mut forward_path = forward.get_path(forward_idx);
+        let reverse_path = reverse.get_path(reverse_idx);
 
-        if f_route.first() == b_route.first() {
-            f_route.remove(0);
+        if forward_path.first() == reverse_path.first() {
+            forward_path.remove(0);
         }
 
-        f_route.reverse();
-        f_route.extend(b_route);
+        forward_path.reverse();
+        forward_path.extend(reverse_path);
 
         Some(Path {
-            verticies: f_route,
+            verticies: forward_path,
             cost,
         })
     }
 
-    pub fn get_weight(forward: &Label, reverse: &Label) -> Option<u32> {
+    pub fn get_weight_labels(forward: &Label, reverse: &Label) -> Option<Weight> {
         let (weight, _, _) = Self::get_overlap(forward, reverse)?;
         Some(weight)
     }

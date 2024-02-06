@@ -53,7 +53,7 @@ impl Label {
             .par_iter()
             .filter(|entry| {
                 let backward_label = backward_labels.get(entry.id as usize).unwrap();
-                let true_cost = HubGraph::get_weight(self, backward_label).unwrap();
+                let true_cost = HubGraph::get_weight_labels(self, backward_label).unwrap();
                 entry.cost == true_cost
             })
             .cloned()
@@ -66,7 +66,7 @@ impl Label {
             .par_iter()
             .filter(|entry| {
                 let forward_label = forward_labels.get(entry.id as usize).unwrap();
-                let true_cost = HubGraph::get_weight(forward_label, self).unwrap();
+                let true_cost = HubGraph::get_weight_labels(forward_label, self).unwrap();
                 entry.cost == true_cost
             })
             .cloned()
