@@ -1,15 +1,10 @@
-use ahash::HashMap;
-use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
-use rayon::{
-    iter::{IntoParallelIterator, ParallelIterator},
-    prelude::IntoParallelRefMutIterator,
-};
+use indicatif::ParallelProgressIterator;
+use rayon::{iter::ParallelIterator, prelude::IntoParallelRefMutIterator};
 use serde_derive::{Deserialize, Serialize};
 
 use crate::routing::{
-    edge::DirectedEdge,
+    ch::shortcut_replacer::ShortcutReplacer,
     path::{Path, PathRequest},
-    simple_algorithms::ch_bi_dijkstra::ChDijkstra,
     types::Weight,
 };
 
@@ -19,29 +14,10 @@ use super::label::Label;
 pub struct HubGraph {
     pub forward_labels: Vec<Label>,
     pub reverse_labels: Vec<Label>,
-    pub shortcuts: HashMap<DirectedEdge, u32>,
+    pub shortcut_replacer: ShortcutReplacer,
 }
 
 impl HubGraph {
-    pub fn new(dijkstra: &ChDijkstra, depth_limit: u32) -> HubGraph {
-        let forward_labels = (0..dijkstra.graph.num_nodes())
-            .into_par_iter()
-            .progress()
-            .map(|id| Label::new(&dijkstra.get_forward_label(id, depth_limit)))
-            .collect();
-        let reverse_labels = (0..dijkstra.graph.num_nodes())
-            .into_par_iter()
-            .progress()
-            .map(|id| Label::new(&dijkstra.get_backward_label(id, depth_limit)))
-            .collect();
-
-        HubGraph {
-            forward_labels,
-            reverse_labels,
-            shortcuts: dijkstra.shortcuts.clone(),
-        }
-    }
-
     pub fn get_avg_label_size(&self) -> f32 {
         let summed_label_size: u64 = self
             .forward_labels
@@ -75,31 +51,7 @@ impl HubGraph {
         let backward_label = self.reverse_labels.get(request.target as usize)?;
         let mut path_with_shortcuts = Self::get_path_with_shortcuts(forward_label, backward_label)?;
 
-        let mut path = Path {
-            verticies: Vec::new(),
-            cost: path_with_shortcuts.cost,
-        };
-
-        while path_with_shortcuts.verticies.len() >= 2 {
-            let last_num = path_with_shortcuts.verticies.pop().unwrap();
-            let second_last_num = *path_with_shortcuts.verticies.last().unwrap();
-            let last = DirectedEdge {
-                tail: second_last_num,
-                head: last_num,
-            };
-            if let Some(&middle_node) = self.shortcuts.get(&last) {
-                path_with_shortcuts
-                    .verticies
-                    .extend([middle_node, last.head]);
-            } else {
-                path.verticies.push(last.head);
-            }
-        }
-
-        path.verticies.push(path_with_shortcuts.verticies[0]);
-        path.verticies.reverse();
-
-        Some(path)
+        Some(self.shortcut_replacer.get_route(&path_with_shortcuts))
     }
 
     // cost, route_with_shortcuts

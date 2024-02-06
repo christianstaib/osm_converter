@@ -1,13 +1,10 @@
-use std::{
-    collections::BinaryHeap,
-    time::{Duration, Instant},
-};
+use std::collections::BinaryHeap;
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use indicatif::ProgressIterator;
 
 use crate::routing::{
-    ch::contractor::ContractedGraph,
+    ch::{contractor::ContractedGraph, shortcut_replacer::ShortcutReplacer},
     edge::DirectedEdge,
     fast_graph::FastGraph,
     hl::{hub_graph::HubGraph, label::Label, label_entry::LabelEntry},
@@ -88,11 +85,12 @@ impl ChDijkstra {
                 in_labels[*vertex as usize].prune_backward(&out_labels);
             }
         }
+        let shortcut_replacer = ShortcutReplacer::new(&self.shortcuts);
 
         HubGraph {
             forward_labels: out_labels,
             reverse_labels: in_labels,
-            shortcuts: self.shortcuts.clone(),
+            shortcut_replacer,
         }
     }
 
