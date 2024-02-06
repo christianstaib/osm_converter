@@ -10,6 +10,7 @@ use crate::routing::{
     edge::DirectedEdge,
     path::{Path, PathRequest},
     simple_algorithms::ch_bi_dijkstra::ChDijkstra,
+    types::Weight,
 };
 
 use super::label::Label;
@@ -97,13 +98,13 @@ impl HubGraph {
     pub fn get_cost(&self, request: &PathRequest) -> Option<u32> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
         let backward_label = self.backward_labels.get(request.target as usize)?;
-        Label::get_weight(forward_label, backward_label)
+        Self::get_weight(forward_label, backward_label)
     }
 
     pub fn get_route(&self, request: &PathRequest) -> Option<Path> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
         let backward_label = self.backward_labels.get(request.target as usize)?;
-        let (cost, mut route_with_shortcuts) = Label::get_path(forward_label, backward_label)?;
+        let (cost, mut route_with_shortcuts) = Self::get_path(forward_label, backward_label)?;
         let mut route = Vec::new();
 
         while route_with_shortcuts.len() >= 2 {
@@ -127,5 +128,68 @@ impl HubGraph {
             verticies: route,
             cost,
         })
+    }
+
+    // cost, route_with_shortcuts
+    pub fn get_path(forward: &Label, reverse: &Label) -> Option<(u32, Vec<u32>)> {
+        let (cost, forward_self, reverse_other) = Self::get_overlap(forward, reverse)?;
+        let mut f_route = forward.get_subroute(forward_self);
+        let b_route = reverse.get_subroute(reverse_other);
+
+        if f_route.first() == b_route.first() {
+            f_route.remove(0);
+        }
+
+        f_route.reverse();
+        f_route.extend(b_route);
+
+        Some((cost, f_route))
+    }
+
+    pub fn get_weight(forward: &Label, reverse: &Label) -> Option<u32> {
+        let (weight, _, _) = Self::get_overlap(forward, reverse)?;
+        Some(weight)
+    }
+
+    /// cost, i_self, i_other
+    pub fn get_overlap(forward: &Label, reverse: &Label) -> Option<(Weight, u32, u32)> {
+        let mut i_forward = 0;
+        let mut i_reverse = 0;
+
+        let mut overlap_weight = None;
+        let mut overlap_i_forward = 0;
+        let mut overlap_i_reverse = 0;
+
+        while i_forward < forward.entries.len() && i_reverse < reverse.entries.len() {
+            let forward_entry = &forward.entries[i_forward];
+            let reverse_entry = &reverse.entries[i_reverse];
+
+            match forward_entry.id.cmp(&reverse_entry.id) {
+                std::cmp::Ordering::Less => i_forward += 1,
+                std::cmp::Ordering::Equal => {
+                    let alternative_weight =
+                        forward_entry.cost.checked_add(reverse_entry.cost).unwrap();
+                    if alternative_weight < overlap_weight.unwrap_or(u32::MAX) {
+                        overlap_weight = Some(alternative_weight);
+                        overlap_i_forward = i_forward;
+                        overlap_i_reverse = i_reverse;
+                    }
+
+                    i_forward += 1;
+                    i_reverse += 1;
+                }
+                std::cmp::Ordering::Greater => i_reverse += 1,
+            }
+        }
+
+        if let Some(min_weight) = overlap_weight {
+            return Some((
+                min_weight,
+                overlap_i_forward as u32,
+                overlap_i_reverse as u32,
+            ));
+        }
+
+        None
     }
 }

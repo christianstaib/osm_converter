@@ -6,14 +6,10 @@ use rayon::{
     slice::ParallelSliceMut,
 };
 use serde_derive::{Deserialize, Serialize};
-use serde_json::map::Entry;
 
-use crate::routing::{
-    edge::DirectedEdge,
-    types::{VertexId, Weight},
-};
+use crate::routing::types::VertexId;
 
-use super::label_entry::LabelEntry;
+use super::{hub_graph::HubGraph, label_entry::LabelEntry};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Label {
@@ -72,7 +68,7 @@ impl Label {
             .par_iter()
             .filter(|entry| {
                 let backward_label = backward_labels.get(entry.id as usize).unwrap();
-                let true_cost = Self::get_weight(self, backward_label).unwrap();
+                let true_cost = HubGraph::get_weight(self, backward_label).unwrap();
                 entry.cost == true_cost
             })
             .cloned()
@@ -85,7 +81,7 @@ impl Label {
             .par_iter()
             .filter(|entry| {
                 let forward_label = forward_labels.get(entry.id as usize).unwrap();
-                let true_cost = Self::get_weight(forward_label, self).unwrap();
+                let true_cost = HubGraph::get_weight(forward_label, self).unwrap();
                 entry.cost == true_cost
             })
             .cloned()
@@ -117,68 +113,5 @@ impl Label {
         }
 
         route
-    }
-
-    // cost, route_with_shortcuts
-    pub fn get_path(forward: &Label, reverse: &Label) -> Option<(u32, Vec<u32>)> {
-        let (cost, forward_self, reverse_other) = Self::get_overlap(forward, reverse)?;
-        let mut f_route = forward.get_subroute(forward_self);
-        let b_route = reverse.get_subroute(reverse_other);
-
-        if f_route.first() == b_route.first() {
-            f_route.remove(0);
-        }
-
-        f_route.reverse();
-        f_route.extend(b_route);
-
-        Some((cost, f_route))
-    }
-
-    pub fn get_weight(forward: &Label, reverse: &Label) -> Option<u32> {
-        let (weight, _, _) = Self::get_overlap(forward, reverse)?;
-        Some(weight)
-    }
-
-    /// cost, i_self, i_other
-    pub fn get_overlap(forward: &Label, reverse: &Label) -> Option<(Weight, u32, u32)> {
-        let mut i_forward = 0;
-        let mut i_reverse = 0;
-
-        let mut overlap_weight = None;
-        let mut overlap_i_forward = 0;
-        let mut overlap_i_reverse = 0;
-
-        while i_forward < forward.entries.len() && i_reverse < reverse.entries.len() {
-            let forward_entry = &forward.entries[i_forward];
-            let reverse_entry = &reverse.entries[i_reverse];
-
-            match forward_entry.id.cmp(&reverse_entry.id) {
-                std::cmp::Ordering::Less => i_forward += 1,
-                std::cmp::Ordering::Equal => {
-                    let alternative_weight =
-                        forward_entry.cost.checked_add(reverse_entry.cost).unwrap();
-                    if alternative_weight < overlap_weight.unwrap_or(u32::MAX) {
-                        overlap_weight = Some(alternative_weight);
-                        overlap_i_forward = i_forward;
-                        overlap_i_reverse = i_reverse;
-                    }
-
-                    i_forward += 1;
-                    i_reverse += 1;
-                }
-                std::cmp::Ordering::Greater => i_reverse += 1,
-            }
-        }
-
-        if let Some(min_weight) = overlap_weight {
-            return Some((
-                min_weight,
-                overlap_i_forward as u32,
-                overlap_i_reverse as u32,
-            ));
-        }
-
-        None
     }
 }
