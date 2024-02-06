@@ -53,14 +53,8 @@ impl ChDijkstra {
 
         let mut in_labels = out_labels.clone();
 
-        let mut merge_time = 0;
-        let mut sort_time = 0;
-        let mut prune_time = 0;
-
-        let start_all = Instant::now();
-        for (i, level_list) in self.levels.iter().rev().enumerate().progress() {
+        for level_list in self.levels.iter().rev().progress() {
             for vertex in level_list {
-                let start = Instant::now();
                 for out_edge in self.graph.out_edges(*vertex) {
                     let mut head_label_entries = out_labels[out_edge.head as usize].entries.clone();
                     head_label_entries.iter_mut().for_each(|entry| {
@@ -74,28 +68,9 @@ impl ChDijkstra {
                         .entries
                         .extend(head_label_entries);
                 }
-                merge_time += start.elapsed().as_micros();
 
-                let start = Instant::now();
                 out_labels[*vertex as usize].sort_and_clean();
-                sort_time += start.elapsed().as_micros();
-
-                let start = Instant::now();
                 out_labels[*vertex as usize].prune_forward(&in_labels);
-                prune_time += start.elapsed().as_micros();
-
-                if i % 10000 == 0 {
-                    println!("i: {}", i);
-                    println!(
-                        "it/s: {:>9.2}",
-                        i as f32 / start_all.elapsed().as_secs_f32()
-                    );
-                    let all_micros = start_all.elapsed().as_micros() as f64 / 100.0;
-                    println!("merge time: {:>2.2}", merge_time as f64 / all_micros);
-                    println!("sort time:  {:>2.2}", sort_time as f64 / all_micros);
-                    println!("prune time: {:>2.2}", prune_time as f64 / all_micros);
-                    println!("");
-                }
 
                 for in_edge in self.graph.in_edges(*vertex) {
                     let mut tail_label_entries = in_labels[in_edge.tail as usize].entries.clone();
