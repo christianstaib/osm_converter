@@ -57,6 +57,7 @@ impl ChDijkstra {
         let mut sort_time = 0;
         let mut prune_time = 0;
 
+        let start_all = Instant::now();
         for (i, level_list) in self.levels.iter().rev().enumerate().progress() {
             for vertex in level_list {
                 let start = Instant::now();
@@ -83,10 +84,16 @@ impl ChDijkstra {
                 out_labels[*vertex as usize].prune_forward(&in_labels);
                 prune_time += start.elapsed().as_micros();
 
-                if i % 1000 == 0 {
+                if i % 10000 == 0 {
+                    println!("i: {}", i);
+                    println!(
+                        "it/s: {:>9.2}",
+                        i as f32 / start_all.elapsed().as_secs_f32()
+                    );
                     println!("merge time: {:>20}", merge_time);
                     println!("sort time:  {:>20}", sort_time);
                     println!("prune time: {:>20}", prune_time);
+                    println!("");
                 }
 
                 for in_edge in self.graph.in_edges(*vertex) {

@@ -1,7 +1,10 @@
 use std::usize;
 
 use ahash::{HashMap, HashMapExt};
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use rayon::{
+    iter::{IntoParallelRefIterator, ParallelIterator},
+    slice::ParallelSliceMut,
+};
 use serde_derive::{Deserialize, Serialize};
 use serde_json::map::Entry;
 
@@ -33,18 +36,19 @@ impl Label {
     pub fn sort_and_clean(&mut self) {
         let mut map: HashMap<VertexId, (u32, VertexId)> = HashMap::new();
 
+        // Assuming the rest of your struct and context is defined elsewhere
         self.entries.iter().for_each(|entry| {
-            let mut cost = entry.cost;
-            let mut predecessor = entry.predecessor;
-
-            if let Some(current_cost) = map.get(&entry.id) {
-                if current_cost.0 < cost {
-                    cost = current_cost.0;
-                    predecessor = current_cost.1
-                }
-            }
-
-            map.insert(entry.id, (cost, predecessor));
+            // Use the entry API to access the map more efficiently
+            map.entry(entry.id)
+                .and_modify(|e| {
+                    // Only update if the new cost is lower
+                    if entry.cost < e.0 {
+                        e.0 = entry.cost;
+                        e.1 = entry.predecessor;
+                    }
+                })
+                // Insert if the key does not exist
+                .or_insert((entry.cost, entry.predecessor));
         });
 
         self.entries = map
@@ -56,7 +60,7 @@ impl Label {
             })
             .collect();
 
-        self.entries.sort_unstable_by_key(|entry| entry.id);
+        self.entries.par_sort_unstable_by_key(|entry| entry.id);
     }
 
     pub fn prune_forward(&mut self, backward_labels: &Vec<Label>) {
