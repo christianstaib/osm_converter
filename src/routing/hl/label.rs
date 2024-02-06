@@ -1,6 +1,7 @@
 use std::usize;
 
 use ahash::{HashMap, HashMapExt};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 use serde_json::map::Entry;
 
@@ -61,7 +62,7 @@ impl Label {
     pub fn prune_forward(&mut self, backward_labels: &Vec<Label>) {
         self.entries = self
             .entries
-            .iter()
+            .par_iter()
             .filter(|entry| {
                 let backward_label = backward_labels.get(entry.id as usize).unwrap();
                 let true_cost = self.get_cost(backward_label).unwrap();
@@ -74,7 +75,7 @@ impl Label {
     pub fn prune_backward(&mut self, forward_label: &Vec<Label>) {
         self.entries = self
             .entries
-            .iter()
+            .par_iter()
             .filter(|entry| {
                 let forward_label = forward_label.get(entry.id as usize).unwrap();
                 let true_cost = self.get_cost(forward_label).unwrap();

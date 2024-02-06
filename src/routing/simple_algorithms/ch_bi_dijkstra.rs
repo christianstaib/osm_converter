@@ -1,4 +1,7 @@
-use std::collections::BinaryHeap;
+use std::{
+    collections::BinaryHeap,
+    time::{Duration, Instant},
+};
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use indicatif::ProgressIterator;
@@ -50,8 +53,13 @@ impl ChDijkstra {
 
         let mut in_labels = out_labels.clone();
 
-        for level_list in self.levels.iter().rev().progress() {
+        let mut merge_time = 0;
+        let mut sort_time = 0;
+        let mut prune_time = 0;
+
+        for (i, level_list) in self.levels.iter().rev().enumerate().progress() {
             for vertex in level_list {
+                let start = Instant::now();
                 for out_edge in self.graph.out_edges(*vertex) {
                     let mut head_label_entries = out_labels[out_edge.head as usize].entries.clone();
                     head_label_entries.iter_mut().for_each(|entry| {
@@ -65,8 +73,21 @@ impl ChDijkstra {
                         .entries
                         .extend(head_label_entries);
                 }
+                merge_time += start.elapsed().as_micros();
+
+                let start = Instant::now();
                 out_labels[*vertex as usize].sort_and_clean();
+                sort_time += start.elapsed().as_micros();
+
+                let start = Instant::now();
                 out_labels[*vertex as usize].prune_forward(&in_labels);
+                prune_time += start.elapsed().as_micros();
+
+                if i % 1000 == 0 {
+                    println!("merge time: {:>20}", merge_time);
+                    println!("sort time:  {:>20}", sort_time);
+                    println!("prune time: {:>20}", prune_time);
+                }
 
                 for in_edge in self.graph.in_edges(*vertex) {
                     let mut tail_label_entries = in_labels[in_edge.tail as usize].entries.clone();
