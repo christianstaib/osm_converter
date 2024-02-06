@@ -17,21 +17,6 @@ pub struct Label {
 }
 
 impl Label {
-    pub fn new(map: &HashMap<u32, (u32, u32)>) -> Label {
-        let mut labels: Vec<_> = map
-            .iter()
-            .map(|(id, (cost, predecessor))| LabelEntry {
-                id: *id,
-                cost: *cost,
-                predecessor: *predecessor,
-            })
-            .collect();
-        labels.sort_unstable_by_key(|entry| entry.id);
-        labels.shrink_to_fit();
-
-        Label { entries: labels }
-    }
-
     pub fn sort_and_clean(&mut self) {
         let mut map: HashMap<VertexId, (u32, VertexId)> = HashMap::new();
 
