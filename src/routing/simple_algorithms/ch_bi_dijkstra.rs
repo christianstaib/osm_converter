@@ -90,9 +90,10 @@ impl ChDijkstra {
                         "it/s: {:>9.2}",
                         i as f32 / start_all.elapsed().as_secs_f32()
                     );
-                    println!("merge time: {:>20}", merge_time);
-                    println!("sort time:  {:>20}", sort_time);
-                    println!("prune time: {:>20}", prune_time);
+                    let all_micros = start_all.elapsed().as_micros() as f64 / 100.0;
+                    println!("merge time: {:>2.2}", merge_time as f64 / all_micros);
+                    println!("sort time:  {:>2.2}", sort_time as f64 / all_micros);
+                    println!("prune time: {:>2.2}", prune_time as f64 / all_micros);
                     println!("");
                 }
 
