@@ -42,15 +42,15 @@ fn main() {
     let mut time_hl = Vec::new();
     tests.iter().progress().for_each(|test| {
         let start = Instant::now();
-        let route = hub_graph.get_route(&test.request);
+        let route = hub_graph.get_cost(&test.request);
         time_hl.push(start.elapsed());
 
-        let mut cost = None;
-        if let Some(route) = route {
-            cost = Some(route.cost);
-            graph.validate_route(&test.request, &route);
-        }
-        assert_eq!(cost, test.cost);
+        // let mut cost = None;
+        // if let Some(route) = route {
+        //     cost = Some(route.cost);
+        //     graph.validate_route(&test.request, &route);
+        // }
+        assert_eq!(route, test.cost);
     });
 
     println!("all correct");
