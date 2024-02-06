@@ -131,13 +131,3 @@ test_hl:
 		--fmi-path $(NETWORK_FMI)\
 		--test-path $(NETWORK_TESTS)
 
-
-prune_hl_stgt:
-	cargo run --bin prune_hl --release --\
-		--hub-graph $(STGT_HUBS)\
-		--pruned-hub-graph $(STGT_HUBS_PRUNED)
-
-prune_hl:
-	cargo run --bin prune_hl --release --\
-		--hub-graph $(NETWORK_HUBS)\
-		--pruned-hub-graph $(NETWORK_HUBS_PRUNED)

@@ -89,21 +89,19 @@ impl Label {
     }
 
     pub fn set_predecessor(&mut self) {
-        // create map id -> idx
         let mut id_idx = HashMap::with_capacity(self.entries.len());
         for idx in 0..self.entries.len() {
             id_idx.insert(self.entries[idx].id, idx as u32);
         }
 
-        // use map to set id (of predecessor) to idx (of predecessor)
         for entry in self.entries.iter_mut() {
             entry.predecessor = *id_idx.get(&entry.predecessor).unwrap();
         }
     }
 
-    pub fn get_subroute(&self, i_self: u32) -> Vec<u32> {
+    pub fn get_path(&self, edge_id: u32) -> Vec<u32> {
         let mut route = Vec::new();
-        let mut idx = i_self;
+        let mut idx = edge_id;
 
         // only guaranted to terminate if set_predecessor was called before
         route.push(self.entries[idx as usize].id);
