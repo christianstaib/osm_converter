@@ -6,17 +6,22 @@ use crate::routing::{edge::DirectedEdge, path::Path, types::VertexId};
 
 #[derive(Serialize, Deserialize)]
 pub struct ShortcutReplacer {
+    pub org_shortcuts: HashMap<DirectedEdge, VertexId>,
     pub shortcuts: HashMap<DirectedEdge, Vec<VertexId>>,
 }
 
 impl ShortcutReplacer {
     pub fn new(shortcuts: &HashMap<DirectedEdge, VertexId>) -> Self {
+        let org_shortcuts = shortcuts.clone();
         let shortcuts = shortcuts
             .iter()
             .map(|(shortcut, vertex)| (shortcut.clone(), vec![*vertex]))
             .collect();
-        let mut shortcut_replacer = ShortcutReplacer { shortcuts };
-        for _ in 0..5 {
+        let mut shortcut_replacer = ShortcutReplacer {
+            org_shortcuts,
+            shortcuts,
+        };
+        for _ in 0..25 {
             shortcut_replacer.extend_shortcuts();
         }
         shortcut_replacer
@@ -28,27 +33,50 @@ impl ShortcutReplacer {
             .iter()
             .progress()
             .for_each(|(shortcut, skiped_verticies)| {
-                if let Some(skiped_verticies) = self.fun_name(shortcut, skiped_verticies) {
+                if let Some(skiped_verticies) = self.extend_one_level(shortcut, skiped_verticies) {
                     self.shortcuts.insert(shortcut.clone(), skiped_verticies);
                 }
             });
     }
 
-    fn fun_name(&self, shortcut: &DirectedEdge, skiped_verticies: &Vec<u32>) -> Option<Vec<u32>> {
+    fn extend_one_level(
+        &self,
+        shortcut: &DirectedEdge,
+        skiped_verticies: &Vec<u32>,
+    ) -> Option<Vec<u32>> {
+        assert!(!skiped_verticies.is_empty());
+
         let mut vec = vec![shortcut.tail];
         vec.extend(skiped_verticies);
         vec.push(shortcut.head);
 
-        let mut skiped_verticies = Vec::new();
+        let mut next_level = Vec::new();
         for window in vec.windows(2) {
             let edge = DirectedEdge {
                 tail: window[0],
                 head: window[1],
             };
-            let verticies = self.shortcuts.get(&edge)?.clone();
-            skiped_verticies.extend(verticies);
+            if let Some(vertex) = self.org_shortcuts.get(&edge) {
+                next_level.push(*vertex);
+            } else {
+                next_level.push(u32::MAX);
+            }
         }
-        Some(skiped_verticies)
+
+        let mut result = Vec::new();
+        for i in 0..next_level.len() {
+            result.push(next_level[i]);
+            result.push(vec[i + 1]);
+        }
+        result.pop();
+        result.dedup();
+        result.retain(|&vertex| vertex != u32::MAX);
+
+        if skiped_verticies.is_empty() {
+            return None;
+        }
+
+        Some(result)
     }
 
     pub fn get_route(&self, path_with_shortcuts: &Path) -> Path {
