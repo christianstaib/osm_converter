@@ -8,7 +8,10 @@ use rayon::{
 };
 use serde_derive::{Deserialize, Serialize};
 
-use crate::routing::{path::Path, types::VertexId};
+use crate::routing::{
+    path::Path,
+    types::{VertexId, Weight},
+};
 
 use super::{hub_graph::HubGraph, label_entry::LabelEntry};
 
@@ -19,30 +22,42 @@ pub struct Label {
 
 impl Label {
     pub fn sort_and_clean(&mut self) {
+        struct WeightPredecessor {
+            weight: Weight,
+            predecessor: Option<VertexId>,
+        }
+
         // use map to remove doubled entries
         // (vertex, (weight, predecessor))
-        let mut entry_map: HashMap<VertexId, (u32, Option<VertexId>)> = HashMap::new();
+        let mut entry_map: HashMap<VertexId, WeightPredecessor> = HashMap::new();
 
-        self.entries.iter().for_each(|entry| {
+        // Assuming the rest of your struct and context is defined elsewhere
+        self.entries.iter().for_each(|self_entry| {
+            // Use the entry API to access the map more efficiently
+
+            let weight_predecessor = WeightPredecessor {
+                weight: self_entry.weight,
+                predecessor: self_entry.predecessor,
+            };
+
             entry_map
-                .entry(entry.vertex)
-                .and_modify(|e| {
+                .entry(self_entry.vertex)
+                .and_modify(|map_entry| {
                     // Only update if the new cost is lower
-                    if entry.weight < e.0 {
-                        e.0 = entry.weight;
-                        e.1 = entry.predecessor;
+                    if self_entry.weight < map_entry.weight {
+                        map_entry.weight = self_entry.weight;
+                        map_entry.predecessor = self_entry.predecessor;
                     }
                 })
-                // Insert if the key does not exist
-                .or_insert((entry.weight, entry.predecessor));
+                .or_insert(weight_predecessor);
         });
 
         self.entries = entry_map
-            .iter()
-            .map(|(id, weight_predecessor)| LabelEntry {
-                vertex: *id,
-                weight: weight_predecessor.0,
-                predecessor: weight_predecessor.1,
+            .into_iter()
+            .map(|(vertex, weight_predecessor)| LabelEntry {
+                vertex,
+                weight: weight_predecessor.weight,
+                predecessor: weight_predecessor.predecessor,
             })
             .collect();
 

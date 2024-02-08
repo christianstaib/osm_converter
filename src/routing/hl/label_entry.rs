@@ -21,3 +21,5 @@ impl PartialEq for LabelEntry {
         self.vertex.eq(&other.vertex)
     }
 }
+
+impl Eq for LabelEntry {}
