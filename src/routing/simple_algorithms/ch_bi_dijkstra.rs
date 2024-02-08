@@ -1,7 +1,8 @@
 use std::collections::BinaryHeap;
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
-use indicatif::ProgressIterator;
+use indicatif::{ParallelProgressIterator, ProgressIterator};
+use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 
 use crate::routing::{
     ch::{contractor::ContractedGraph, shortcut_replacer::ShortcutReplacer},
@@ -35,9 +36,9 @@ impl ChDijkstra {
         let mut out_labels: Vec<_> = (0..self.graph.num_nodes())
             .map(|vertex| {
                 let entry = LabelEntry {
-                    id: vertex,
-                    cost: 0,
-                    predecessor: vertex,
+                    vertex,
+                    weight: 0,
+                    predecessor: None,
                 };
 
                 Label {
@@ -53,37 +54,43 @@ impl ChDijkstra {
                 for out_edge in self.graph.out_edges(*vertex) {
                     let mut head_label_entries = out_labels[out_edge.head as usize].entries.clone();
                     head_label_entries.iter_mut().for_each(|entry| {
-                        if entry.id == out_edge.head {
-                            entry.predecessor = *vertex;
+                        if entry.vertex == out_edge.head {
+                            entry.predecessor = Some(*vertex);
                         }
-                        entry.cost += out_edge.cost
+                        entry.weight += out_edge.cost
                     });
 
                     out_labels[*vertex as usize]
                         .entries
                         .extend(head_label_entries);
                 }
-                out_labels[*vertex as usize].sort_and_clean();
-                out_labels[*vertex as usize].prune_forward(&in_labels);
+                out_labels[*vertex as usize].clean();
+                out_labels[*vertex as usize].prune_forward_label(&in_labels);
 
                 for in_edge in self.graph.in_edges(*vertex) {
                     let mut tail_label_entries = in_labels[in_edge.tail as usize].entries.clone();
                     tail_label_entries.iter_mut().for_each(|entry| {
-                        if entry.id == in_edge.tail {
-                            entry.predecessor = *vertex;
+                        if entry.vertex == in_edge.tail {
+                            entry.predecessor = Some(*vertex);
                         }
-                        entry.cost += in_edge.cost
+                        entry.weight += in_edge.cost
                     });
 
                     in_labels[*vertex as usize]
                         .entries
                         .extend(tail_label_entries);
                 }
-                in_labels[*vertex as usize].sort_and_clean();
-                in_labels[*vertex as usize].prune_backward(&out_labels);
+                in_labels[*vertex as usize].clean();
+                in_labels[*vertex as usize].prune_reverse_label(&out_labels);
             }
         }
         let shortcut_replacer = ShortcutReplacer::new(&self.shortcuts);
+
+        out_labels
+            .par_iter_mut()
+            .chain(in_labels.par_iter_mut())
+            .progress()
+            .for_each(|label| label.set_predecessor());
 
         HubGraph {
             forward_labels: out_labels,
@@ -186,6 +193,7 @@ impl ChDijkstra {
         }
         None
     }
+
     /// (contact_node, cost)
     pub fn get_route(&self, request: &PathRequest) -> Option<Path> {
         let mut forward_costs = HashMap::new();
@@ -312,8 +320,8 @@ fn get_route(
         current = *new_current;
     }
     let route = Path {
-        verticies: route,
-        cost: meeting_cost,
+        vertices: route,
+        weight: meeting_cost,
     };
     Some(route)
 }

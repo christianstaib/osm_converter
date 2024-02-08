@@ -1,13 +1,11 @@
+use core::panic;
 use std::usize;
 
-use ahash::{HashMap, HashMapExt};
-use rayon::{
-    iter::{IntoParallelRefIterator, ParallelIterator},
-    slice::ParallelSliceMut,
-};
+use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
-use crate::routing::types::VertexId;
+use crate::routing::path::Path;
 
 use super::{hub_graph::HubGraph, label_entry::LabelEntry};
 
@@ -17,84 +15,91 @@ pub struct Label {
 }
 
 impl Label {
-    pub fn sort_and_clean(&mut self) {
-        let mut map: HashMap<VertexId, (u32, VertexId)> = HashMap::new();
+    pub fn clean(&mut self) {
+        let old_entries = std::mem::take(&mut self.entries);
 
-        // Assuming the rest of your struct and context is defined elsewhere
-        self.entries.iter().for_each(|entry| {
-            // Use the entry API to access the map more efficiently
-            map.entry(entry.id)
-                .and_modify(|e| {
-                    // Only update if the new cost is lower
-                    if entry.cost < e.0 {
-                        e.0 = entry.cost;
-                        e.1 = entry.predecessor;
+        old_entries.into_iter().for_each(|old_entry| {
+            let search_result = self
+                .entries
+                .binary_search_by_key(&old_entry.vertex, |self_entry| self_entry.vertex);
+
+            match search_result {
+                Ok(idx) => {
+                    if old_entry.weight < self.entries[idx as usize].weight {
+                        self.entries[idx as usize].weight = old_entry.weight;
+                        self.entries[idx as usize].predecessor = old_entry.predecessor;
                     }
-                })
-                // Insert if the key does not exist
-                .or_insert((entry.cost, entry.predecessor));
+                }
+                Err(idx) => self.entries.insert(idx, old_entry),
+            }
         });
-
-        self.entries = map
-            .iter()
-            .map(|(id, cost_predecessor)| LabelEntry {
-                id: *id,
-                cost: cost_predecessor.0,
-                predecessor: cost_predecessor.1,
-            })
-            .collect();
-
-        self.entries.par_sort_unstable_by_key(|entry| entry.id);
     }
 
-    pub fn prune_forward(&mut self, backward_labels: &Vec<Label>) {
+    pub fn prune_forward_label(&mut self, reverse_labels: &[Label]) {
         self.entries = self
             .entries
             .par_iter()
             .filter(|entry| {
-                let backward_label = backward_labels.get(entry.id as usize).unwrap();
-                let true_cost = HubGraph::get_weight_labels(self, backward_label).unwrap();
-                entry.cost == true_cost
+                let reverse_label = &reverse_labels[entry.vertex as usize];
+                let true_cost = HubGraph::get_weight_labels(self, reverse_label).unwrap();
+                entry.weight == true_cost
             })
             .cloned()
             .collect();
     }
 
-    pub fn prune_backward(&mut self, forward_labels: &Vec<Label>) {
+    pub fn prune_reverse_label(&mut self, forward_labels: &[Label]) {
         self.entries = self
             .entries
             .par_iter()
             .filter(|entry| {
-                let forward_label = forward_labels.get(entry.id as usize).unwrap();
+                let forward_label = &forward_labels[entry.vertex as usize];
                 let true_cost = HubGraph::get_weight_labels(forward_label, self).unwrap();
-                entry.cost == true_cost
+                entry.weight == true_cost
             })
             .cloned()
             .collect();
     }
 
     pub fn set_predecessor(&mut self) {
-        let mut id_idx = HashMap::with_capacity(self.entries.len());
+        // maps vertex -> index
+        let mut vertex_to_index = HashMap::new();
         for idx in 0..self.entries.len() {
-            id_idx.insert(self.entries[idx].id, idx as u32);
+            vertex_to_index.insert(self.entries[idx].vertex, idx as u32);
         }
 
+        // replace predecessor VertexId with index of predecessor
         for entry in self.entries.iter_mut() {
-            entry.predecessor = *id_idx.get(&entry.predecessor).unwrap();
+            if let Some(predecessor) = entry.predecessor {
+                entry.predecessor = Some(*vertex_to_index.get(&predecessor).unwrap());
+            }
         }
     }
 
-    pub fn get_path(&self, edge_id: u32) -> Vec<u32> {
-        let mut route = Vec::new();
-        let mut idx = edge_id;
+    pub fn get_path(&self, edge_id: u32) -> Path {
+        let mut path = Path {
+            vertices: Vec::new(),
+            weight: self.entries[edge_id as usize].weight,
+        };
+        let mut current_idx = edge_id;
+        let mut visited = HashSet::new();
 
-        // only guaranted to terminate if set_predecessor was called before
-        route.push(self.entries[idx as usize].id);
-        while self.entries[idx as usize].predecessor != idx {
-            idx = self.entries[idx as usize].predecessor;
-            route.push(self.entries[idx as usize].id);
+        while let Some(entry) = self.entries.get(current_idx as usize) {
+            // cycle detection
+            if !visited.insert(current_idx) {
+                panic!("wrong formated label");
+            }
+
+            path.vertices.push(entry.vertex);
+
+            if let Some(this_idx) = entry.predecessor {
+                current_idx = this_idx;
+            } else {
+                // exit the loop if there's no predecessor
+                break;
+            }
         }
 
-        route
+        path
     }
 }

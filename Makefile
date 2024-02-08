@@ -20,7 +20,7 @@ STGT_HUBS:= $(FMI_DIR)/stgtregbz_hubs.bincode
 STGT_HUBS_PRUNED:= $(FMI_DIR)/stgtregbz_hubs_pruned.bincode
 STGT_TESTS_JSON := $(FMI_DIR)/stgtregbz_tests.json
 
-NUM_TESTS := 1000
+NUM_TESTS := 10000
 HOP_LIMIT := 3
 
 dirs:

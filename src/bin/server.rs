@@ -72,7 +72,7 @@ async fn main() {
             let time = start.elapsed();
 
             if let Some(route) = response.route {
-                let ids = &route.verticies;
+                let ids = &route.vertices;
                 let path = fmi.convert_path(ids);
                 let linesstring = Linestring::new(path);
 
@@ -87,7 +87,7 @@ async fn main() {
                     "route_request: {:>7} -> {:>7}, cost: {:>9}, took: {:>3}ms",
                     source,
                     target,
-                    route.cost,
+                    route.weight,
                     time.as_millis()
                 );
                 return Response::builder().body(planet.to_geojson_str().to_string());

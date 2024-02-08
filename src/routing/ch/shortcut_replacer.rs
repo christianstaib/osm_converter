@@ -82,25 +82,25 @@ impl ShortcutReplacer {
     pub fn get_route(&self, path_with_shortcuts: &Path) -> Path {
         let mut path_with_shortcuts = path_with_shortcuts.clone();
         let mut path = Path {
-            verticies: Vec::new(),
-            cost: path_with_shortcuts.cost,
+            vertices: Vec::new(),
+            weight: path_with_shortcuts.weight,
         };
 
-        while path_with_shortcuts.verticies.len() >= 2 {
-            let head = path_with_shortcuts.verticies.pop().unwrap();
-            let tail = *path_with_shortcuts.verticies.last().unwrap();
+        while path_with_shortcuts.vertices.len() >= 2 {
+            let head = path_with_shortcuts.vertices.pop().unwrap();
+            let tail = *path_with_shortcuts.vertices.last().unwrap();
             let edge = DirectedEdge { tail, head };
 
             if let Some(skiped_verticies) = self.shortcuts.get(&edge) {
-                path_with_shortcuts.verticies.extend(skiped_verticies);
-                path_with_shortcuts.verticies.push(edge.head);
+                path_with_shortcuts.vertices.extend(skiped_verticies);
+                path_with_shortcuts.vertices.push(edge.head);
             } else {
-                path.verticies.push(edge.head);
+                path.vertices.push(edge.head);
             }
         }
 
-        path.verticies.push(path_with_shortcuts.verticies[0]);
-        path.verticies.reverse();
+        path.vertices.push(path_with_shortcuts.vertices[0]);
+        path.vertices.reverse();
 
         path
     }
