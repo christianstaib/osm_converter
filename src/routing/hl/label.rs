@@ -2,16 +2,10 @@ use core::panic;
 use std::usize;
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
-use rayon::{
-    iter::{IntoParallelRefIterator, ParallelIterator},
-    slice::ParallelSliceMut,
-};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
-use crate::routing::{
-    path::Path,
-    types::{VertexId, Weight},
-};
+use crate::routing::path::Path;
 
 use super::{hub_graph::HubGraph, label_entry::LabelEntry};
 
@@ -21,68 +15,45 @@ pub struct Label {
 }
 
 impl Label {
-    pub fn sort_and_clean(&mut self) {
-        struct WeightPredecessor {
-            weight: Weight,
-            predecessor: Option<VertexId>,
-        }
+    pub fn clean(&mut self) {
+        let old_entries = std::mem::take(&mut self.entries);
 
-        // use map to remove doubled entries
-        // (vertex, (weight, predecessor))
-        let mut entry_map: HashMap<VertexId, WeightPredecessor> = HashMap::new();
+        old_entries.into_iter().for_each(|old_entry| {
+            let search_result = self
+                .entries
+                .binary_search_by_key(&old_entry.vertex, |self_entry| self_entry.vertex);
 
-        // Assuming the rest of your struct and context is defined elsewhere
-        self.entries.iter().for_each(|self_entry| {
-            // Use the entry API to access the map more efficiently
-
-            let weight_predecessor = WeightPredecessor {
-                weight: self_entry.weight,
-                predecessor: self_entry.predecessor,
-            };
-
-            entry_map
-                .entry(self_entry.vertex)
-                .and_modify(|map_entry| {
-                    // Only update if the new cost is lower
-                    if self_entry.weight < map_entry.weight {
-                        map_entry.weight = self_entry.weight;
-                        map_entry.predecessor = self_entry.predecessor;
+            match search_result {
+                Ok(idx) => {
+                    if old_entry.weight < self.entries[idx as usize].weight {
+                        self.entries[idx as usize].weight = old_entry.weight;
+                        self.entries[idx as usize].predecessor = old_entry.predecessor;
                     }
-                })
-                .or_insert(weight_predecessor);
+                }
+                Err(idx) => self.entries.insert(idx, old_entry),
+            }
         });
-
-        self.entries = entry_map
-            .into_iter()
-            .map(|(vertex, weight_predecessor)| LabelEntry {
-                vertex,
-                weight: weight_predecessor.weight,
-                predecessor: weight_predecessor.predecessor,
-            })
-            .collect();
-
-        self.entries.par_sort_unstable_by_key(|entry| entry.vertex);
     }
 
-    pub fn prune_forward(&mut self, backward_labels: &Vec<Label>) {
+    pub fn prune_forward_label(&mut self, reverse_labels: &[Label]) {
         self.entries = self
             .entries
             .par_iter()
             .filter(|entry| {
-                let backward_label = backward_labels.get(entry.vertex as usize).unwrap();
-                let true_cost = HubGraph::get_weight_labels(self, backward_label).unwrap();
+                let reverse_label = &reverse_labels[entry.vertex as usize];
+                let true_cost = HubGraph::get_weight_labels(self, reverse_label).unwrap();
                 entry.weight == true_cost
             })
             .cloned()
             .collect();
     }
 
-    pub fn prune_backward(&mut self, forward_labels: &Vec<Label>) {
+    pub fn prune_reverse_label(&mut self, forward_labels: &[Label]) {
         self.entries = self
             .entries
             .par_iter()
             .filter(|entry| {
-                let forward_label = forward_labels.get(entry.vertex as usize).unwrap();
+                let forward_label = &forward_labels[entry.vertex as usize];
                 let true_cost = HubGraph::get_weight_labels(forward_label, self).unwrap();
                 entry.weight == true_cost
             })

@@ -63,8 +63,8 @@ impl ChDijkstra {
                         .entries
                         .extend(head_label_entries);
                 }
-                out_labels[*vertex as usize].sort_and_clean();
-                out_labels[*vertex as usize].prune_forward(&in_labels);
+                out_labels[*vertex as usize].clean();
+                out_labels[*vertex as usize].prune_forward_label(&in_labels);
 
                 for in_edge in self.graph.in_edges(*vertex) {
                     let mut tail_label_entries = in_labels[in_edge.tail as usize].entries.clone();
@@ -79,8 +79,8 @@ impl ChDijkstra {
                         .entries
                         .extend(tail_label_entries);
                 }
-                in_labels[*vertex as usize].sort_and_clean();
-                in_labels[*vertex as usize].prune_backward(&out_labels);
+                in_labels[*vertex as usize].clean();
+                in_labels[*vertex as usize].prune_reverse_label(&out_labels);
             }
         }
         let shortcut_replacer = ShortcutReplacer::new(&self.shortcuts);
