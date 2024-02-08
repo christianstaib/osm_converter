@@ -75,14 +75,15 @@ impl Label {
 
     pub fn set_predecessor(&mut self) {
         // maps vertex -> index
-        let mut id_idx = HashMap::with_capacity(self.entries.len());
+        let mut vertex_to_index = HashMap::new();
         for idx in 0..self.entries.len() {
-            id_idx.insert(self.entries[idx].vertex, idx as u32);
+            vertex_to_index.insert(self.entries[idx].vertex, idx as u32);
         }
 
+        // replace predecessor VertexId with index of predecessor
         for entry in self.entries.iter_mut() {
             if let Some(predecessor) = entry.predecessor {
-                entry.predecessor = Some(*id_idx.get(&predecessor).unwrap());
+                entry.predecessor = Some(*vertex_to_index.get(&predecessor).unwrap());
             }
         }
     }
@@ -91,9 +92,9 @@ impl Label {
         let mut route = Vec::new();
         let mut idx = edge_id;
 
-        // only guaranted to terminate if set_predecessor was called before
         route.push(self.entries[idx as usize].vertex);
         while let Some(this_idx) = self.entries[idx as usize].predecessor {
+            assert_ne!(this_idx, idx);
             idx = this_idx;
             route.push(self.entries[idx as usize].vertex);
         }
