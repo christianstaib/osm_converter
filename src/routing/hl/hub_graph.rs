@@ -61,15 +61,15 @@ impl HubGraph {
         let mut forward_path = forward.get_path(forward_idx);
         let reverse_path = reverse.get_path(reverse_idx);
 
-        if forward_path.first() == reverse_path.first() {
-            forward_path.remove(0);
+        if forward_path.verticies.first() == reverse_path.verticies.first() {
+            forward_path.verticies.remove(0);
         }
 
-        forward_path.reverse();
-        forward_path.extend(reverse_path);
+        forward_path.verticies.reverse();
+        forward_path.verticies.extend(reverse_path.verticies);
 
         Some(Path {
-            verticies: forward_path,
+            verticies: forward_path.verticies,
             cost,
         })
     }

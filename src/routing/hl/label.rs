@@ -7,7 +7,7 @@ use rayon::{
 };
 use serde_derive::{Deserialize, Serialize};
 
-use crate::routing::types::VertexId;
+use crate::routing::{path::Path, types::VertexId};
 
 use super::{hub_graph::HubGraph, label_entry::LabelEntry};
 
@@ -88,17 +88,20 @@ impl Label {
         }
     }
 
-    pub fn get_path(&self, edge_id: u32) -> Vec<u32> {
-        let mut route = Vec::new();
+    pub fn get_path(&self, edge_id: u32) -> Path {
+        let mut path = Path {
+            verticies: Vec::new(),
+            cost: 0,
+        };
         let mut idx = edge_id;
 
-        route.push(self.entries[idx as usize].vertex);
+        path.verticies.push(self.entries[idx as usize].vertex);
         while let Some(this_idx) = self.entries[idx as usize].predecessor {
-            assert_ne!(this_idx, idx);
+            path.cost += self.entries[idx as usize].cost;
             idx = this_idx;
-            route.push(self.entries[idx as usize].vertex);
+            path.verticies.push(self.entries[idx as usize].vertex);
         }
 
-        route
+        path
     }
 }
