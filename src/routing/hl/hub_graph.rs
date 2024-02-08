@@ -57,7 +57,7 @@ impl HubGraph {
 
     // cost, route_with_shortcuts
     pub fn get_path_with_shortcuts(forward: &Label, reverse: &Label) -> Option<Path> {
-        let (weight, forward_idx, reverse_idx) = Self::get_overlap(forward, reverse)?;
+        let (_, forward_idx, reverse_idx) = Self::get_overlap(forward, reverse)?;
         let mut forward_path = forward.get_path(forward_idx);
         let reverse_path = reverse.get_path(reverse_idx);
 

@@ -19,12 +19,13 @@ pub struct Label {
 
 impl Label {
     pub fn sort_and_clean(&mut self) {
-        let mut map: HashMap<VertexId, (u32, Option<VertexId>)> = HashMap::new();
+        // use map to remove doubled entries
+        // (vertex, (weight, predecessor))
+        let mut entry_map: HashMap<VertexId, (u32, Option<VertexId>)> = HashMap::new();
 
-        // Assuming the rest of your struct and context is defined elsewhere
         self.entries.iter().for_each(|entry| {
-            // Use the entry API to access the map more efficiently
-            map.entry(entry.vertex)
+            entry_map
+                .entry(entry.vertex)
                 .and_modify(|e| {
                     // Only update if the new cost is lower
                     if entry.weight < e.0 {
@@ -36,12 +37,12 @@ impl Label {
                 .or_insert((entry.weight, entry.predecessor));
         });
 
-        self.entries = map
+        self.entries = entry_map
             .iter()
-            .map(|(id, cost_predecessor)| LabelEntry {
+            .map(|(id, weight_predecessor)| LabelEntry {
                 vertex: *id,
-                weight: cost_predecessor.0,
-                predecessor: cost_predecessor.1,
+                weight: weight_predecessor.0,
+                predecessor: weight_predecessor.1,
             })
             .collect();
 
