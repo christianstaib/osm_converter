@@ -1,9 +1,16 @@
+use std::sync::atomic::{AtomicU32, Ordering};
+
+use indicatif::{ParallelProgressIterator, ProgressIterator};
+use rand::Rng;
+use rayon::iter::{
+    IntoParallelIterator, IntoParallelRefIterator, ParallelBridge, ParallelIterator,
+};
 use serde_derive::{Deserialize, Serialize};
 
 use crate::routing::{
     ch::shortcut_replacer::ShortcutReplacer,
     path::{Path, PathRequest},
-    types::Weight,
+    types::{VertexId, Weight},
 };
 
 use super::label::Label;
@@ -37,7 +44,7 @@ impl HubGraph {
         Self::get_weight_labels(forward_label, backward_label)
     }
 
-    pub fn get_route(&self, request: &PathRequest) -> Option<Path> {
+    pub fn get_path(&self, request: &PathRequest) -> Option<Path> {
         let forward_label = self.forward_labels.get(request.source as usize)?;
         let backward_label = self.reverse_labels.get(request.target as usize)?;
         let path_with_shortcuts = Self::get_path_with_shortcuts(forward_label, backward_label)?;
@@ -113,5 +120,66 @@ impl HubGraph {
         }
 
         None
+    }
+
+    pub fn make_hit_set(&self, size: u32) -> Vec<u32> {
+        let mut rng = rand::thread_rng();
+        let request: Vec<_> = (0..size as usize)
+            .progress()
+            .map(|_| PathRequest {
+                source: rng.gen_range(0..self.forward_labels.len()) as u32,
+                target: rng.gen_range(0..self.forward_labels.len()) as u32,
+            })
+            .collect();
+
+        let mut hitting_set = vec![0; self.forward_labels.len()];
+        request.iter().progress().for_each(|request| {
+            if let Some(path) = self.get_path(request) {
+                for vertex in path.vertices {
+                    hitting_set[vertex as usize] += 1;
+                }
+            }
+        });
+        hitting_set
+    }
+
+    pub fn make_hit_set_par(&self, size: u32) -> Vec<u32> {
+        // Generate requests in parallel
+        let request: Vec<_> = (0..size as usize)
+            .into_par_iter() // Use into_par_iter for parallel iteration
+            .progress()
+            .map_init(rand::thread_rng, |rng, _| PathRequest {
+                source: rng.gen_range(0..self.forward_labels.len()) as u32,
+                target: rng.gen_range(0..self.forward_labels.len()) as u32,
+            })
+            .collect();
+
+        let hitting_set: Vec<AtomicU32> = (0..self.forward_labels.len())
+            .map(|_| AtomicU32::new(0))
+            .collect();
+        // Process each request in parallel
+        request.par_iter().progress().for_each(|request| {
+            if let Some(path) = self.get_path(request) {
+                for vertex in path.vertices {
+                    // Ensure atomic updates to hitting_set
+                    hitting_set[vertex as usize].fetch_add(1, Ordering::Relaxed);
+                }
+            }
+        });
+        hitting_set
+            .into_iter()
+            .map(|num| num.into_inner())
+            .collect()
+    }
+
+    pub fn make_ordering(&self, size: u32) -> Vec<Vec<VertexId>> {
+        let hit_set = self.make_hit_set_par(size);
+        let mut order: Vec<_> = hit_set
+            .iter()
+            .enumerate()
+            .map(|(vertex, hit_num)| (vertex as u32, hit_num))
+            .collect();
+        order.sort_by_key(|&(_, hit_num)| hit_num);
+        order.iter().map(|(vertex, _)| vec![*vertex]).collect()
     }
 }

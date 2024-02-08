@@ -39,10 +39,13 @@ fn main() {
 
     println!("avg label size is {}", hub_graph.get_avg_label_size());
 
+    // println!("make hitting set");
+    // hub_graph.make_hit_set_par(10_000_000);
+
     let mut time_hl = Vec::new();
     tests.iter().progress().for_each(|test| {
         let start = Instant::now();
-        let path = hub_graph.get_route(&test.request);
+        let path = hub_graph.get_path(&test.request);
         time_hl.push(start.elapsed());
 
         let mut cost = None;
