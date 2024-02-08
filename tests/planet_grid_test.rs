@@ -1,5 +1,7 @@
-use osm_test::{geometry::Planet, spatial_partition::PolygonSpatialPartition};
-use rayon::prelude::*;
+use osm_test::sphere::{
+    geometry::planet::Planet, spatial_partition::polygon_spatial_partition::PolygonSpatialPartition,
+};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 #[test]
 fn planet_grid() {
