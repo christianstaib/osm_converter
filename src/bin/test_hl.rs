@@ -47,7 +47,7 @@ fn main() {
 
         let mut cost = None;
         if let Some(route) = path {
-            cost = Some(route.cost);
+            cost = Some(route.weight);
             graph.validate_route(&test.request, &route);
         }
         assert_eq!(cost, test.cost);

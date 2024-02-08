@@ -36,7 +36,7 @@ impl ChDijkstra {
             .map(|vertex| {
                 let entry = LabelEntry {
                     vertex,
-                    cost: 0,
+                    weight: 0,
                     predecessor: None,
                 };
 
@@ -56,7 +56,7 @@ impl ChDijkstra {
                         if entry.vertex == out_edge.head {
                             entry.predecessor = Some(*vertex);
                         }
-                        entry.cost += out_edge.cost
+                        entry.weight += out_edge.cost
                     });
 
                     out_labels[*vertex as usize]
@@ -72,7 +72,7 @@ impl ChDijkstra {
                         if entry.vertex == in_edge.tail {
                             entry.predecessor = Some(*vertex);
                         }
-                        entry.cost += in_edge.cost
+                        entry.weight += in_edge.cost
                     });
 
                     in_labels[*vertex as usize]
@@ -313,7 +313,7 @@ fn get_route(
     }
     let route = Path {
         verticies: route,
-        cost: meeting_cost,
+        weight: meeting_cost,
     };
     Some(route)
 }

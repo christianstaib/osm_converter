@@ -48,7 +48,7 @@ fn main() {
             let response = dijkstra.get_route(&request);
             let mut cost = None;
             if let Some(route) = response.route {
-                cost = Some(route.cost);
+                cost = Some(route.weight);
             }
 
             RouteValidationRequest { request, cost }

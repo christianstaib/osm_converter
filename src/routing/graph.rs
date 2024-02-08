@@ -131,6 +131,10 @@ impl Graph {
 
         // check if cost of route is correct
         let true_cost = edges.iter().map(|edge| edge.cost).sum::<u32>();
-        assert_eq!(route.cost, true_cost);
+        assert_eq!(
+            route.weight, true_cost,
+            "path weight should be {}, but was {}",
+            true_cost, route.weight
+        );
     }
 }

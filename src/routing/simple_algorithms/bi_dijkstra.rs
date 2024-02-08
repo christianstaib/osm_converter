@@ -88,7 +88,7 @@ fn construct_route(
     backward_route.verticies.pop();
     backward_route.verticies.reverse();
     forward_route.verticies.extend(backward_route.verticies);
-    forward_route.cost += backward_route.cost;
+    forward_route.weight += backward_route.weight;
 
     Some(forward_route)
 }

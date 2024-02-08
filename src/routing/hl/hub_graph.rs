@@ -57,10 +57,12 @@ impl HubGraph {
 
     // cost, route_with_shortcuts
     pub fn get_path_with_shortcuts(forward: &Label, reverse: &Label) -> Option<Path> {
-        let (cost, forward_idx, reverse_idx) = Self::get_overlap(forward, reverse)?;
+        let (weight, forward_idx, reverse_idx) = Self::get_overlap(forward, reverse)?;
         let mut forward_path = forward.get_path(forward_idx);
         let reverse_path = reverse.get_path(reverse_idx);
 
+        // wanted: u -> w
+        // got: forward v -> u, reverse v -> w
         if forward_path.verticies.first() == reverse_path.verticies.first() {
             forward_path.verticies.remove(0);
         }
@@ -70,7 +72,7 @@ impl HubGraph {
 
         Some(Path {
             verticies: forward_path.verticies,
-            cost,
+            weight: forward_path.weight + reverse_path.weight,
         })
     }
 
@@ -95,8 +97,10 @@ impl HubGraph {
             match forward_entry.vertex.cmp(&reverse_entry.vertex) {
                 std::cmp::Ordering::Less => i_forward += 1,
                 std::cmp::Ordering::Equal => {
-                    let alternative_weight =
-                        forward_entry.cost.checked_add(reverse_entry.cost).unwrap();
+                    let alternative_weight = forward_entry
+                        .weight
+                        .checked_add(reverse_entry.weight)
+                        .unwrap();
                     if alternative_weight < overlap_weight.unwrap_or(u32::MAX) {
                         overlap_weight = Some(alternative_weight);
                         overlap_i_forward = i_forward;

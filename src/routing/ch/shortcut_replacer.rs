@@ -83,7 +83,7 @@ impl ShortcutReplacer {
         let mut path_with_shortcuts = path_with_shortcuts.clone();
         let mut path = Path {
             verticies: Vec::new(),
-            cost: path_with_shortcuts.cost,
+            weight: path_with_shortcuts.weight,
         };
 
         while path_with_shortcuts.verticies.len() >= 2 {

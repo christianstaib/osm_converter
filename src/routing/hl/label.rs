@@ -26,20 +26,20 @@ impl Label {
             map.entry(entry.vertex)
                 .and_modify(|e| {
                     // Only update if the new cost is lower
-                    if entry.cost < e.0 {
-                        e.0 = entry.cost;
+                    if entry.weight < e.0 {
+                        e.0 = entry.weight;
                         e.1 = entry.predecessor;
                     }
                 })
                 // Insert if the key does not exist
-                .or_insert((entry.cost, entry.predecessor));
+                .or_insert((entry.weight, entry.predecessor));
         });
 
         self.entries = map
             .iter()
             .map(|(id, cost_predecessor)| LabelEntry {
                 vertex: *id,
-                cost: cost_predecessor.0,
+                weight: cost_predecessor.0,
                 predecessor: cost_predecessor.1,
             })
             .collect();
@@ -54,7 +54,7 @@ impl Label {
             .filter(|entry| {
                 let backward_label = backward_labels.get(entry.vertex as usize).unwrap();
                 let true_cost = HubGraph::get_weight_labels(self, backward_label).unwrap();
-                entry.cost == true_cost
+                entry.weight == true_cost
             })
             .cloned()
             .collect();
@@ -67,7 +67,7 @@ impl Label {
             .filter(|entry| {
                 let forward_label = forward_labels.get(entry.vertex as usize).unwrap();
                 let true_cost = HubGraph::get_weight_labels(forward_label, self).unwrap();
-                entry.cost == true_cost
+                entry.weight == true_cost
             })
             .cloned()
             .collect();
@@ -91,14 +91,13 @@ impl Label {
     pub fn get_path(&self, edge_id: u32) -> Path {
         let mut path = Path {
             verticies: Vec::new(),
-            cost: 0,
+            weight: self.entries[edge_id as usize].weight,
         };
         let mut idx = edge_id;
 
         path.verticies.push(self.entries[idx as usize].vertex);
-        while let Some(this_idx) = self.entries[idx as usize].predecessor {
-            path.cost += self.entries[idx as usize].cost;
-            idx = this_idx;
+        while let Some(predecessor_idx) = self.entries[idx as usize].predecessor {
+            idx = predecessor_idx;
             path.verticies.push(self.entries[idx as usize].vertex);
         }
 
