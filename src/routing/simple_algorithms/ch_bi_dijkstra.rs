@@ -1,7 +1,8 @@
 use std::collections::BinaryHeap;
 
 use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
-use indicatif::ProgressIterator;
+use indicatif::{ParallelProgressIterator, ProgressIterator};
+use rayon::iter::{IntoParallelRefMutIterator, ParallelIterator};
 
 use crate::routing::{
     ch::{contractor::ContractedGraph, shortcut_replacer::ShortcutReplacer},
@@ -84,6 +85,12 @@ impl ChDijkstra {
             }
         }
         let shortcut_replacer = ShortcutReplacer::new(&self.shortcuts);
+
+        out_labels
+            .par_iter_mut()
+            .chain(in_labels.par_iter_mut())
+            .progress()
+            .for_each(|label| label.set_predecessor());
 
         HubGraph {
             forward_labels: out_labels,

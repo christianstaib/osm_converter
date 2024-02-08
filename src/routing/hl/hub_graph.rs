@@ -1,5 +1,3 @@
-use indicatif::ParallelProgressIterator;
-use rayon::{iter::ParallelIterator, prelude::IntoParallelRefMutIterator};
 use serde_derive::{Deserialize, Serialize};
 
 use crate::routing::{
@@ -30,14 +28,6 @@ impl HubGraph {
                 .map(|label| label.entries.len() as u64)
                 .sum::<u64>();
         summed_label_size as f32 / (2 * self.forward_labels.len()) as f32
-    }
-
-    pub fn set_predecessor(&mut self) {
-        self.forward_labels
-            .par_iter_mut()
-            .chain(self.reverse_labels.par_iter_mut())
-            .progress()
-            .for_each(|label| label.set_predecessor());
     }
 
     pub fn get_weight(&self, request: &PathRequest) -> Option<u32> {

@@ -81,19 +81,19 @@ impl Label {
             vertices: Vec::new(),
             weight: self.entries[edge_id as usize].weight,
         };
-        let mut idx = edge_id;
+        let mut current_idx = edge_id;
         let mut visited = HashSet::new();
 
-        while let Some(entry) = self.entries.get(idx as usize) {
+        while let Some(entry) = self.entries.get(current_idx as usize) {
             // cycle detection
-            if !visited.insert(idx) {
+            if !visited.insert(current_idx) {
                 panic!("wrong formated label");
             }
 
             path.vertices.push(entry.vertex);
 
             if let Some(this_idx) = entry.predecessor {
-                idx = this_idx;
+                current_idx = this_idx;
             } else {
                 // exit the loop if there's no predecessor
                 break;

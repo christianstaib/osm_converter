@@ -34,12 +34,8 @@ fn main() {
     let dijkstra = ChDijkstra::new(&contracted_graph);
 
     let start = Instant::now();
-    let mut hub_graph = dijkstra.get_hl();
+    let hub_graph = dijkstra.get_hl();
     println!("Generating hl took {:?}", start.elapsed());
-
-    let start = Instant::now();
-    hub_graph.set_predecessor();
-    println!("set predecessor took {:?}", start.elapsed());
 
     let writer = BufWriter::new(File::create(args.hub_graph).unwrap());
     bincode::serialize_into(writer, &hub_graph).unwrap();
