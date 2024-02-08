@@ -18,7 +18,7 @@ pub struct Label {
 
 impl Label {
     pub fn sort_and_clean(&mut self) {
-        let mut map: HashMap<VertexId, (u32, VertexId)> = HashMap::new();
+        let mut map: HashMap<VertexId, (u32, Option<VertexId>)> = HashMap::new();
 
         // Assuming the rest of your struct and context is defined elsewhere
         self.entries.iter().for_each(|entry| {
@@ -74,13 +74,16 @@ impl Label {
     }
 
     pub fn set_predecessor(&mut self) {
+        // maps vertex -> index
         let mut id_idx = HashMap::with_capacity(self.entries.len());
         for idx in 0..self.entries.len() {
             id_idx.insert(self.entries[idx].vertex, idx as u32);
         }
 
         for entry in self.entries.iter_mut() {
-            entry.predecessor = *id_idx.get(&entry.predecessor).unwrap();
+            if let Some(predecessor) = entry.predecessor {
+                entry.predecessor = Some(*id_idx.get(&predecessor).unwrap());
+            }
         }
     }
 
@@ -90,8 +93,8 @@ impl Label {
 
         // only guaranted to terminate if set_predecessor was called before
         route.push(self.entries[idx as usize].vertex);
-        while self.entries[idx as usize].predecessor != idx {
-            idx = self.entries[idx as usize].predecessor;
+        while let Some(this_idx) = self.entries[idx as usize].predecessor {
+            idx = this_idx;
             route.push(self.entries[idx as usize].vertex);
         }
 

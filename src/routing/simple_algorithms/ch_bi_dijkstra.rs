@@ -37,7 +37,7 @@ impl ChDijkstra {
                 let entry = LabelEntry {
                     vertex,
                     cost: 0,
-                    predecessor: vertex,
+                    predecessor: None,
                 };
 
                 Label {
@@ -54,7 +54,7 @@ impl ChDijkstra {
                     let mut head_label_entries = out_labels[out_edge.head as usize].entries.clone();
                     head_label_entries.iter_mut().for_each(|entry| {
                         if entry.vertex == out_edge.head {
-                            entry.predecessor = *vertex;
+                            entry.predecessor = Some(*vertex);
                         }
                         entry.cost += out_edge.cost
                     });
@@ -70,7 +70,7 @@ impl ChDijkstra {
                     let mut tail_label_entries = in_labels[in_edge.tail as usize].entries.clone();
                     tail_label_entries.iter_mut().for_each(|entry| {
                         if entry.vertex == in_edge.tail {
-                            entry.predecessor = *vertex;
+                            entry.predecessor = Some(*vertex);
                         }
                         entry.cost += in_edge.cost
                     });
