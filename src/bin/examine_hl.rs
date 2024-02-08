@@ -26,7 +26,7 @@ fn main() {
         .chain(hub_graph.reverse_labels.iter())
         .progress_count(2 * hub_graph.forward_labels.len() as u64)
         .flat_map(|label| &label.entries)
-        .for_each(|entry| used[entry.id as usize] += 1);
+        .for_each(|entry| used[entry.vertex as usize] += 1);
 
     let all: u64 = used.iter().map(|&n| n as u64).sum();
 

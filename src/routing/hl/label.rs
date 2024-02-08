@@ -23,7 +23,7 @@ impl Label {
         // Assuming the rest of your struct and context is defined elsewhere
         self.entries.iter().for_each(|entry| {
             // Use the entry API to access the map more efficiently
-            map.entry(entry.id)
+            map.entry(entry.vertex)
                 .and_modify(|e| {
                     // Only update if the new cost is lower
                     if entry.cost < e.0 {
@@ -38,13 +38,13 @@ impl Label {
         self.entries = map
             .iter()
             .map(|(id, cost_predecessor)| LabelEntry {
-                id: *id,
+                vertex: *id,
                 cost: cost_predecessor.0,
                 predecessor: cost_predecessor.1,
             })
             .collect();
 
-        self.entries.par_sort_unstable_by_key(|entry| entry.id);
+        self.entries.par_sort_unstable_by_key(|entry| entry.vertex);
     }
 
     pub fn prune_forward(&mut self, backward_labels: &Vec<Label>) {
@@ -52,7 +52,7 @@ impl Label {
             .entries
             .par_iter()
             .filter(|entry| {
-                let backward_label = backward_labels.get(entry.id as usize).unwrap();
+                let backward_label = backward_labels.get(entry.vertex as usize).unwrap();
                 let true_cost = HubGraph::get_weight_labels(self, backward_label).unwrap();
                 entry.cost == true_cost
             })
@@ -65,7 +65,7 @@ impl Label {
             .entries
             .par_iter()
             .filter(|entry| {
-                let forward_label = forward_labels.get(entry.id as usize).unwrap();
+                let forward_label = forward_labels.get(entry.vertex as usize).unwrap();
                 let true_cost = HubGraph::get_weight_labels(forward_label, self).unwrap();
                 entry.cost == true_cost
             })
@@ -76,7 +76,7 @@ impl Label {
     pub fn set_predecessor(&mut self) {
         let mut id_idx = HashMap::with_capacity(self.entries.len());
         for idx in 0..self.entries.len() {
-            id_idx.insert(self.entries[idx].id, idx as u32);
+            id_idx.insert(self.entries[idx].vertex, idx as u32);
         }
 
         for entry in self.entries.iter_mut() {
@@ -89,10 +89,10 @@ impl Label {
         let mut idx = edge_id;
 
         // only guaranted to terminate if set_predecessor was called before
-        route.push(self.entries[idx as usize].id);
+        route.push(self.entries[idx as usize].vertex);
         while self.entries[idx as usize].predecessor != idx {
             idx = self.entries[idx as usize].predecessor;
-            route.push(self.entries[idx as usize].id);
+            route.push(self.entries[idx as usize].vertex);
         }
 
         route

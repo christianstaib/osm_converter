@@ -35,7 +35,7 @@ impl ChDijkstra {
         let mut out_labels: Vec<_> = (0..self.graph.num_nodes())
             .map(|vertex| {
                 let entry = LabelEntry {
-                    id: vertex,
+                    vertex,
                     cost: 0,
                     predecessor: vertex,
                 };
@@ -53,7 +53,7 @@ impl ChDijkstra {
                 for out_edge in self.graph.out_edges(*vertex) {
                     let mut head_label_entries = out_labels[out_edge.head as usize].entries.clone();
                     head_label_entries.iter_mut().for_each(|entry| {
-                        if entry.id == out_edge.head {
+                        if entry.vertex == out_edge.head {
                             entry.predecessor = *vertex;
                         }
                         entry.cost += out_edge.cost
@@ -69,7 +69,7 @@ impl ChDijkstra {
                 for in_edge in self.graph.in_edges(*vertex) {
                     let mut tail_label_entries = in_labels[in_edge.tail as usize].entries.clone();
                     tail_label_entries.iter_mut().for_each(|entry| {
-                        if entry.id == in_edge.tail {
+                        if entry.vertex == in_edge.tail {
                             entry.predecessor = *vertex;
                         }
                         entry.cost += in_edge.cost

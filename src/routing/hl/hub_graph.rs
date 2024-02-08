@@ -92,7 +92,7 @@ impl HubGraph {
             let forward_entry = &forward.entries[i_forward];
             let reverse_entry = &reverse.entries[i_reverse];
 
-            match forward_entry.id.cmp(&reverse_entry.id) {
+            match forward_entry.vertex.cmp(&reverse_entry.vertex) {
                 std::cmp::Ordering::Less => i_forward += 1,
                 std::cmp::Ordering::Equal => {
                     let alternative_weight =
