@@ -36,7 +36,6 @@ impl CHQueue {
             priority_terms,
         };
         queue.register(1, EdgeDifferencePriority::new());
-        // queue.register(1, VoronoiRegion::new());
         queue.register(1, DeletedNeighbors::new(graph.out_edges.len() as u32));
         queue.register(1, CostOfQueries::new(graph.out_edges.len() as u32));
         queue.initialize(graph);
