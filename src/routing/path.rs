@@ -13,7 +13,7 @@ pub struct PathRequest {
 
 #[derive(Clone)]
 pub struct Path {
-    pub verticies: Vec<VertexId>,
+    pub vertices: Vec<VertexId>,
     pub weight: Weight,
 }
 

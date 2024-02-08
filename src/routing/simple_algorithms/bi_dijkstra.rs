@@ -85,9 +85,9 @@ fn construct_route(
 ) -> Option<Path> {
     let mut forward_route = forward_data.get_route(contact_node)?;
     let mut backward_route = backward_data.get_route(contact_node)?;
-    backward_route.verticies.pop();
-    backward_route.verticies.reverse();
-    forward_route.verticies.extend(backward_route.verticies);
+    backward_route.vertices.pop();
+    backward_route.vertices.reverse();
+    forward_route.vertices.extend(backward_route.vertices);
     forward_route.weight += backward_route.weight;
 
     Some(forward_route)

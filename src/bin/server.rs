@@ -72,7 +72,7 @@ async fn main() {
             let time = start.elapsed();
 
             if let Some(route) = response.route {
-                let ids = &route.verticies;
+                let ids = &route.vertices;
                 let path = fmi.convert_path(ids);
                 let linesstring = Linestring::new(path);
 

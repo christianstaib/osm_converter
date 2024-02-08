@@ -76,7 +76,7 @@ impl DijkstraData {
         route.reverse();
         Some(Path {
             weight: self.verticies[target as usize].cost?,
-            verticies: route,
+            vertices: route,
         })
     }
 

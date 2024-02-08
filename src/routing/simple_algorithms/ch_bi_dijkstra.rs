@@ -312,7 +312,7 @@ fn get_route(
         current = *new_current;
     }
     let route = Path {
-        verticies: route,
+        vertices: route,
         weight: meeting_cost,
     };
     Some(route)

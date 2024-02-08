@@ -63,15 +63,15 @@ impl HubGraph {
 
         // wanted: u -> w
         // got: forward v -> u, reverse v -> w
-        if forward_path.verticies.first() == reverse_path.verticies.first() {
-            forward_path.verticies.remove(0);
+        if forward_path.vertices.first() == reverse_path.vertices.first() {
+            forward_path.vertices.remove(0);
         }
 
-        forward_path.verticies.reverse();
-        forward_path.verticies.extend(reverse_path.verticies);
+        forward_path.vertices.reverse();
+        forward_path.vertices.extend(reverse_path.vertices);
 
         Some(Path {
-            verticies: forward_path.verticies,
+            vertices: forward_path.vertices,
             weight: forward_path.weight + reverse_path.weight,
         })
     }

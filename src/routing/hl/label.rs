@@ -90,15 +90,15 @@ impl Label {
 
     pub fn get_path(&self, edge_id: u32) -> Path {
         let mut path = Path {
-            verticies: Vec::new(),
+            vertices: Vec::new(),
             weight: self.entries[edge_id as usize].weight,
         };
         let mut idx = edge_id;
 
-        path.verticies.push(self.entries[idx as usize].vertex);
+        path.vertices.push(self.entries[idx as usize].vertex);
         while let Some(predecessor_idx) = self.entries[idx as usize].predecessor {
             idx = predecessor_idx;
-            path.verticies.push(self.entries[idx as usize].vertex);
+            path.vertices.push(self.entries[idx as usize].vertex);
         }
 
         path

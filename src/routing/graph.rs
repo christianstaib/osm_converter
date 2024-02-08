@@ -111,12 +111,12 @@ impl Graph {
     /// Check if a route is correct for a given request. Panics if not.
     pub fn validate_route(&self, request: &PathRequest, route: &Path) {
         // check if route start and end is correct
-        assert_eq!(route.verticies.first().unwrap(), &request.source);
-        assert_eq!(route.verticies.last().unwrap(), &request.target);
+        assert_eq!(route.vertices.first().unwrap(), &request.source);
+        assert_eq!(route.vertices.last().unwrap(), &request.target);
 
         // check if there is an edge between consecutive route nodes
         let mut edges = Vec::new();
-        for node_pair in route.verticies.windows(2) {
+        for node_pair in route.vertices.windows(2) {
             if let [from, to] = node_pair {
                 let min_edge = self.out_edges[*from as usize]
                     .iter()
