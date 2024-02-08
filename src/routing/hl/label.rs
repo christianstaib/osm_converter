@@ -1,6 +1,7 @@
+use core::panic;
 use std::usize;
 
-use ahash::{HashMap, HashMapExt};
+use ahash::{HashMap, HashMapExt, HashSet, HashSetExt};
 use rayon::{
     iter::{IntoParallelRefIterator, ParallelIterator},
     slice::ParallelSliceMut,
@@ -94,11 +95,22 @@ impl Label {
             weight: self.entries[edge_id as usize].weight,
         };
         let mut idx = edge_id;
+        let mut visited = HashSet::new();
 
-        path.vertices.push(self.entries[idx as usize].vertex);
-        while let Some(predecessor_idx) = self.entries[idx as usize].predecessor {
-            idx = predecessor_idx;
-            path.vertices.push(self.entries[idx as usize].vertex);
+        while let Some(entry) = self.entries.get(idx as usize) {
+            // cycle detection
+            if !visited.insert(idx) {
+                panic!("wrong formated label");
+            }
+
+            path.vertices.push(entry.vertex);
+
+            if let Some(this_idx) = entry.predecessor {
+                idx = this_idx;
+            } else {
+                // exit the loop if there's no predecessor
+                break;
+            }
         }
 
         path

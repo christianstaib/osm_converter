@@ -186,6 +186,7 @@ impl ChDijkstra {
         }
         None
     }
+
     /// (contact_node, cost)
     pub fn get_route(&self, request: &PathRequest) -> Option<Path> {
         let mut forward_costs = HashMap::new();
