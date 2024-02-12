@@ -17,30 +17,6 @@ dirs:
 	mkdir tests/data/fmi/
 
 
-
-leaflet:
-	docker run -dit --name leaflet -p 8080:80 -v ./public-html:/usr/local/apache2/htdocs/ httpd:2.4
-
-server:
-	cargo run --bin server --release  --\
-		--fmi-path tests/data/fmi/network.fmi
-
-test_queue_sol:
-	cargo run --bin test_queue_sol --release --\
-		--fmi-path $(STGT_FMI)\
-		--fmi-ch-path $(STGT_CONTRACTED)\
-		--fmi-hl-path $(STGT_HUBS_PRUNED)\
-		--queue-path ~/Downloads/Benchs/stgtregbz.que\
-		--sol-path ~/Downloads/Benchs/stgtregbz.sol
-
-test:
-	cargo run --bin test --release --\
-		--fmi-path $(STGT_FMI)\
-		--fmi-ch-path $(STGT_CONTRACTED)\
-		--fmi-hl-path $(STGT_HUBS_PRUNED)\
-		--tests-path $(STGT_TESTS_JSON)
-
-
 download:
 	curl $(INTERNET_OSM) -o $(NETWORK_OSM)
 
