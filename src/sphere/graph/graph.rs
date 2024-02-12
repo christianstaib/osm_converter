@@ -95,7 +95,7 @@ impl Fmi {
 
         arc_map.iter().for_each(|((tail, head), weight)| {
             // srcIDX trgIDX cost type maxspeed
-            writeln!(writer, "a {} {} {} 0 0", tail, head, weight).unwrap();
+            writeln!(writer, "a {} {} {}", tail, head, weight).unwrap();
         });
         writer.flush().unwrap();
     }
