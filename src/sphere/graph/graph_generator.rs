@@ -28,7 +28,7 @@ pub fn generate_network(
     let arcs = generate_arcs(&points, &point_grid, &planet_grid, 30_000.0);
 
     let fmi = Fmi { points, arcs };
-    fmi.to_file(network_path);
+    fmi.to_gr_file(network_path);
     let fmi_planet = fmi.to_planet();
 
     fmi_planet.to_image(image_path);
