@@ -8,7 +8,8 @@ NETWORK_OSM := $(OSM_DIR)/planet-coastlines.osm.pbf
 PLANET := $(GEOJSON_DIR)/planet.geojson
 NETWORK_GEOJSON := $(GEOJSON_DIR)/network.geojson
 
-NETWORK_FMI := $(FMI_DIR)/network.gr
+NETWORK_GR := $(FMI_DIR)/network.gr
+NETWORK_CO := $(FMI_DIR)/network.co
 
 dirs:
 	mkdir tests/data/test_geojson/
@@ -29,7 +30,8 @@ generate_network:
 	cargo run --release --bin generate_network --\
 		--input $(PLANET)\
 		--num-nodes 4000000\
-		--output-network $(NETWORK_FMI)\
+		--gr-file $(NETWORK_GR)\
+		--co-file $(NETWORK_CO)\
 		--output-geojson $(NETWORK_GEOJSON)\
 		--output-image tests/data/test_geojson/network.png
 

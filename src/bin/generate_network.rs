@@ -13,7 +13,10 @@ struct Args {
     num_nodes: u32,
     /// Path of .fmi file
     #[arg(short, long)]
-    output_network: String,
+    gr_file: String,
+    /// Path of .fmi file
+    #[arg(short, long)]
+    co_file: String,
     /// Path of .fmi file
     #[arg(short, long)]
     output_geojson: String,
@@ -30,7 +33,8 @@ fn main() {
     generate_network(
         args.num_nodes,
         &planet,
-        args.output_network.as_str(),
+        args.gr_file.as_str(),
+        args.co_file.as_str(),
         args.output_geojson.as_str(),
         args.output_image.as_str(),
     );

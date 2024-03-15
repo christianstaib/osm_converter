@@ -19,48 +19,53 @@ pub struct Fmi {
 }
 
 impl Fmi {
-    pub fn from_file(path: &str) -> Fmi {
-        let reader = BufReader::new(File::open(path).unwrap());
-        let mut lines = reader.lines();
+    pub fn from_gr_co_file(&self, gr_path: &str, co_path: &str) -> Fmi {
+        let mut arcs = Vec::new();
+        let mut points = HashMap::new();
 
-        let num_nodes = lines.by_ref().next().unwrap().unwrap().parse().unwrap();
-        let num_arcs = lines.by_ref().next().unwrap().unwrap().parse().unwrap();
+        //
+        let co_reader = BufReader::new(File::open(co_path).unwrap());
+        let co_lines = co_reader.lines();
 
-        let points: Vec<_> = lines
-            .by_ref()
-            .take(num_nodes)
-            .enumerate()
-            .progress_count(num_nodes as u64)
-            .map(|(i, line)| {
-                // nodeID nodeID2 latitude longitude elevation
-                let line = line.unwrap();
-                let mut line = line.split_whitespace();
-                let id: u32 = line.next().unwrap().parse().unwrap();
-                assert_eq!(id as usize, i);
-                let lat = line.next().unwrap().parse().unwrap();
-                let lon = line.next().unwrap().parse().unwrap();
-                Point::from_coordinate(lat, lon)
-            })
-            .collect();
+        co_lines.for_each(|line| {
+            let line = line.unwrap();
+            let line_sections: Vec<_> = line.split_whitespace().into_iter().collect();
+            if let Some(first_line_section) = line_sections.first() {
+                if first_line_section == &"v" {
+                    let id: u32 = line_sections.get(1).unwrap().parse().unwrap();
+                    let lat: f64 = line_sections.get(2).unwrap().parse().unwrap();
+                    let lon: f64 = line_sections.get(3).unwrap().parse().unwrap();
+                    points.insert(id, Point::from_coordinate(lat, lon));
+                }
+            }
+        });
 
-        let arcs = lines
-            .by_ref()
-            .take(num_arcs)
-            .progress_count(num_arcs as u64)
-            .map(|line| {
-                let line = line.unwrap();
-                let mut line = line.split_whitespace();
-                let from: u32 = line.next().unwrap().parse().unwrap();
-                let to: u32 = line.next().unwrap().parse().unwrap();
-                let _cost: u32 = line.next().unwrap().parse().unwrap();
-                Arc::new(&points[from as usize], &points[to as usize])
-            })
-            .collect();
+        //
+        let gr_reader = BufReader::new(File::open(gr_path).unwrap());
+        let gr_lines = gr_reader.lines();
+
+        gr_lines.for_each(|line| {
+            let line = line.unwrap();
+            let line_sections: Vec<_> = line.split_whitespace().into_iter().collect();
+            if let Some(first_line_section) = line_sections.first() {
+                if first_line_section == &"a" {
+                    let tail: u32 = line_sections.get(1).unwrap().parse().unwrap();
+                    let head: u32 = line_sections.get(2).unwrap().parse().unwrap();
+                    let _weight: u32 = line_sections.get(3).unwrap().parse().unwrap();
+                    arcs.push(Arc::new(
+                        &points.get(&tail).unwrap(),
+                        &points.get(&head).unwrap(),
+                    ));
+                }
+            }
+        });
+
+        let points = points.into_iter().map(|(_, point)| point).collect();
 
         Fmi { points, arcs }
     }
 
-    pub fn to_gr_file(&self, path: &str) {
+    pub fn to_gr_co_file(&self, gr_path: &str, co_path: &str) {
         println!("writing to file");
         let mut point_id_map = HashMap::new();
         for (i, point) in self.points.iter().enumerate() {
@@ -77,27 +82,29 @@ impl Fmi {
             arc_map.insert((target, source), cost);
         });
 
-        let mut writer = BufWriter::new(File::create(path).unwrap());
-        writeln!(writer, "p sp {} {}", self.points.len(), self.arcs.len()).unwrap();
-        // writeln!(writer, "{}", arc_map.len()).unwrap();
-        // self.points.iter().for_each(|point| {
-        //     // nodeID nodeID2 latitude longitude elevation
-        //     writeln!(
-        //         writer,
-        //         "{} 0 {} {} 0",
-        //         point_id_map.get(point).unwrap(),
-        //         point.latitude(),
-        //         point.longitude()
-        //     )
-        //     .unwrap();
-        // });
-        // writer.flush().unwrap();
-
+        // write arcs
+        let mut gr_writer = BufWriter::new(File::create(gr_path).unwrap());
+        writeln!(gr_writer, "p sp {} {}", self.points.len(), self.arcs.len()).unwrap();
         arc_map.iter().for_each(|((tail, head), weight)| {
-            // srcIDX trgIDX cost type maxspeed
-            writeln!(writer, "a {} {} {}", tail, head, weight).unwrap();
+            writeln!(gr_writer, "a {} {} {}", tail, head, weight).unwrap();
         });
-        writer.flush().unwrap();
+        gr_writer.flush().unwrap();
+
+        // write points
+        let mut co_writer = BufWriter::new(File::create(co_path).unwrap());
+        writeln!(co_writer, "p aux sp co {}", self.points.len(),).unwrap();
+        self.points.iter().for_each(|point| {
+            // nodeID nodeID2 latitude longitude elevation
+            writeln!(
+                co_writer,
+                "v {} {} {}",
+                point_id_map.get(point).unwrap(),
+                point.latitude(),
+                point.longitude()
+            )
+            .unwrap();
+        });
+        co_writer.flush().unwrap();
     }
 
     pub fn to_file(&self, path: &str) {

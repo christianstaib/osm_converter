@@ -15,7 +15,8 @@ use crate::sphere::spatial_partition::tiling::ConvecQuadrilateral;
 pub fn generate_network(
     num_nodes: u32,
     planet: &Planet,
-    network_path: &str,
+    gr_path: &str,
+    co_path: &str,
     planet_path: &str,
     image_path: &str,
 ) {
@@ -27,9 +28,9 @@ pub fn generate_network(
     let point_grid = generate_point_grid(&points);
     let arcs = generate_arcs(&points, &point_grid, &planet_grid, 30_000.0);
 
-    let fmi = Fmi { points, arcs };
-    fmi.to_gr_file(network_path);
-    let fmi_planet = fmi.to_planet();
+    let gr = Fmi { points, arcs };
+    gr.to_gr_co_file(gr_path, co_path);
+    let fmi_planet = gr.to_planet();
 
     fmi_planet.to_image(image_path);
     fmi_planet.to_geojson_file(planet_path);
