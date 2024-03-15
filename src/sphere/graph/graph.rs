@@ -17,7 +17,7 @@ pub struct Fmi {
 }
 
 impl Fmi {
-    pub fn from_gr_co_file(&self, gr_path: &str, co_path: &str) -> Fmi {
+    pub fn from_gr_co_file(gr_path: &str, co_path: &str) -> Fmi {
         let mut arcs = Vec::new();
         let mut points = HashMap::new();
 
