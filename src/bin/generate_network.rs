@@ -1,5 +1,5 @@
 use clap::Parser;
-use osm_test::sphere::{geometry::planet::Planet, graph::graph_generator::generate_network};
+use osm_converter::sphere::{geometry::planet::Planet, graph::graph_generator::generate_network};
 
 /// Starts a routing service on localhost:3030/route
 #[derive(Parser, Debug)]
