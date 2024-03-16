@@ -52,7 +52,6 @@ impl Fmi {
                     let _weight: u32 = line_sections.get(3).unwrap().parse().unwrap();
                     let arc = Arc::new(&points.get(&tail).unwrap(), &points.get(&head).unwrap());
                     assert!(radians_to_meter(arc.central_angle()) <= 30_000.0);
-                    println!("is ok");
                     arcs.push(arc);
                 }
             }
