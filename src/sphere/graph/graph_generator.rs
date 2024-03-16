@@ -30,6 +30,8 @@ pub fn generate_network(
 
     let gr = Fmi { points, arcs };
     gr.to_gr_co_file(gr_path, co_path);
+    let test = Fmi::from_gr_co_file(gr_path, co_path);
+    assert_eq!(gr.points[0].latitude(), test.points[0].latitude());
     let fmi_planet = gr.to_planet();
 
     fmi_planet.to_image(image_path);

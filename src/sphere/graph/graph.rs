@@ -50,14 +50,16 @@ impl Fmi {
                     let tail: u32 = line_sections.get(1).unwrap().parse().unwrap();
                     let head: u32 = line_sections.get(2).unwrap().parse().unwrap();
                     let _weight: u32 = line_sections.get(3).unwrap().parse().unwrap();
-                    arcs.push(Arc::new(
-                        &points.get(&tail).unwrap(),
-                        &points.get(&head).unwrap(),
-                    ));
+                    let arc = Arc::new(&points.get(&tail).unwrap(), &points.get(&head).unwrap());
+                    assert!(radians_to_meter(arc.central_angle()) <= 30_000);
+                    println!("is ok");
+                    arcs.push(arc);
                 }
             }
         });
 
+        let mut points: Vec<_> = points.into();
+        points.sort_unstable_by_key(|(id, _)| id);
         let points = points.into_iter().map(|(_, point)| point).collect();
 
         Fmi { points, arcs }
@@ -91,12 +93,15 @@ impl Fmi {
         // write points
         let mut co_writer = BufWriter::new(File::create(co_path).unwrap());
         writeln!(co_writer, "p aux sp co {}", self.points.len(),).unwrap();
-        self.points.iter().for_each(|point| {
+
+        self.points.iter().enumerate().for_each(|(idx, point)| {
             // nodeID nodeID2 latitude longitude elevation
+            let id = *point_id_map.get(point).unwrap();
+            assert_eq!(id, idx);
             writeln!(
                 co_writer,
                 "v {} {} {}",
-                point_id_map.get(point).unwrap(),
+                id,
                 point.latitude(),
                 point.longitude()
             )
