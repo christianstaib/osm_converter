@@ -51,15 +51,15 @@ impl Fmi {
                     let head: u32 = line_sections.get(2).unwrap().parse().unwrap();
                     let _weight: u32 = line_sections.get(3).unwrap().parse().unwrap();
                     let arc = Arc::new(&points.get(&tail).unwrap(), &points.get(&head).unwrap());
-                    assert!(radians_to_meter(arc.central_angle()) <= 30_000);
+                    assert!(radians_to_meter(arc.central_angle()) <= 30_000.0);
                     println!("is ok");
                     arcs.push(arc);
                 }
             }
         });
 
-        let mut points: Vec<_> = points.into();
-        points.sort_unstable_by_key(|(id, _)| id);
+        let mut points: Vec<_> = points.into_iter().collect();
+        points.sort_unstable_by_key(|(id, _)| *id);
         let points = points.into_iter().map(|(_, point)| point).collect();
 
         Fmi { points, arcs }
