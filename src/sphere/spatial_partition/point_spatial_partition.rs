@@ -70,7 +70,6 @@ impl PointSpatialPartition {
     }
 
     pub fn add_points(&mut self, points: &Vec<Point>) {
-        println!("len is {}", points.len());
         points
             .iter()
             .progress()
