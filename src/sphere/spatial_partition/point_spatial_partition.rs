@@ -1,8 +1,11 @@
+use std::f64::consts::PI;
+
 use indicatif::ProgressIterator;
 
 use crate::sphere::geometry::{
+    arc::Arc,
     collision_detection::{Collides, Contains},
-    point::Point,
+    point::{meters_to_radians, Point},
 };
 
 use super::tiling::{ConvecQuadrilateral, Tiling};
@@ -113,5 +116,26 @@ impl PointSpatialPartition {
         }
 
         points
+    }
+
+    pub fn get_nearest(&self, point: &Point) -> Option<Point> {
+        let radius = 30_000.0;
+        let polygon = ConvecQuadrilateral::new(&vec![
+            Point::destination_point(point, 0.0 / 4.0 * PI, meters_to_radians(radius)),
+            Point::destination_point(point, 7.0 / 4.0 * PI, meters_to_radians(radius)),
+            Point::destination_point(point, 6.0 / 4.0 * PI, meters_to_radians(radius)),
+            Point::destination_point(point, 5.0 / 4.0 * PI, meters_to_radians(radius)),
+            Point::destination_point(point, 4.0 / 4.0 * PI, meters_to_radians(radius)),
+            Point::destination_point(point, 3.0 / 4.0 * PI, meters_to_radians(radius)),
+            Point::destination_point(point, 2.0 / 4.0 * PI, meters_to_radians(radius)),
+            Point::destination_point(point, 1.0 / 4.0 * PI, meters_to_radians(radius)),
+            Point::destination_point(point, 0.0 / 4.0 * PI, meters_to_radians(radius)),
+        ]);
+        let points = self.get_points(&polygon);
+        points.into_iter().min_by(|a, b| {
+            let a = Arc::new(a, point);
+            let b = Arc::new(b, point);
+            a.central_angle().partial_cmp(&b.central_angle()).unwrap()
+        })
     }
 }
